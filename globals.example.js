@@ -18,7 +18,7 @@ const arangojs = require('arangojs')
 ///
 // Globals.
 ///
-const constants = {
+module.exports = Object.freeze({
 	// Database connection.
 	db: new arangojs.Database({
 		url: 'http://localhost:8529',
@@ -27,14 +27,14 @@ const constants = {
 	}),
 	
 	// Collection names.
-    collections: {
-        genus: 'EU-Forest_Genus',
-        species: 'EU-Forest_Species'
-    },
+	collections: {
+		genus: 'EU-Forest_Genus',
+		species: 'EU-Forest_Species'
+	},
 	
 	// Collection indexes.
 	indexes: {
-        genus: [
+		genus: [
 			{
 				"name": "idx_genera",
 				"type": "persistent",
@@ -44,41 +44,41 @@ const constants = {
 				"deduplicate": false,
 				"sparse": false,
 				"unique": false
-	        },
-	        {
-		        "name": "idx_geometry",
-		        "type": "geo",
-		        "fields": ["geometry"],
-		        "geoJson": true,
-		        "estimates": true,
-		        "cacheEnabled": false,
-		        "deduplicate": false,
-		        "sparse": false,
-		        "unique": false
-	        }
+			},
+			{
+				"name": "idx_geometry",
+				"type": "geo",
+				"fields": ["geometry"],
+				"geoJson": true,
+				"estimates": true,
+				"cacheEnabled": false,
+				"deduplicate": false,
+				"sparse": false,
+				"unique": false
+			}
 		],
-        species: [
-	        {
-		        "name": "idx_species",
-		        "type": "persistent",
-		        "fields": ["species"],
-		        "estimates": true,
-		        "cacheEnabled": false,
-		        "deduplicate": false,
-		        "sparse": false,
-		        "unique": false
-	        },
-	        {
-		        "name": "idx_geometry",
-		        "type": "geo",
-		        "fields": ["geometry"],
-		        "geoJson": true,
-		        "estimates": true,
-		        "cacheEnabled": false,
-		        "deduplicate": false,
-		        "sparse": false,
-		        "unique": false
-	        }
-        ]
-    }
-}
+		species: [
+			{
+				"name": "idx_species",
+				"type": "persistent",
+				"fields": ["species"],
+				"estimates": true,
+				"cacheEnabled": false,
+				"deduplicate": false,
+				"sparse": false,
+				"unique": false
+			},
+			{
+				"name": "idx_geometry",
+				"type": "geo",
+				"fields": ["geometry"],
+				"geoJson": true,
+				"estimates": true,
+				"cacheEnabled": false,
+				"deduplicate": false,
+				"sparse": false,
+				"unique": false
+			}
+		]
+	}
+})
