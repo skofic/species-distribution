@@ -1,10 +1,12 @@
 /**
+ * processEU-Forest
+ *
  * This script expects two files in the input directory:
  *
  * - `EU-Forest_Genus.csv`: The coordinates of the Genus occurrences.
  * - `EU-Forest_Species.csv`: The coordinates of the Species occurrences.
  *
- *
+ * The function will load them in the respective collections.
  */
 
 ///
@@ -13,6 +15,11 @@
 const fs = require('fs')
 const csv = require('csv-parser')
 const proj4 = require('proj4')
+
+///
+// Import constants.
+///
+const K = require("./globals.localhost.js")
 
 ///
 // File references.
@@ -40,6 +47,11 @@ const outputFilePath = [
 	outputDir + '/' + fileSpeciesName + '.jsonl'
 ]
 
+///
+// Create collections.
+///
+createCollections()
+
 
 /**
  * GENERATE DUMP FILES
@@ -50,6 +62,11 @@ const outputFilePath = [
 ///
 for(let i = 0; i < inputFilePath.length; i++)
 {
+	///
+	// Init records list.
+	///
+	const records = []
+	
 	///
 	// Create a writable stream for the JSONL output.
 	///
@@ -65,27 +82,83 @@ for(let i = 0; i < inputFilePath.length; i++)
 			///
 			// Parse taxonomy.
 			///
+			let record = {}
 			switch(i)
 			{
 				case 0:
-					outputStream.write(JSON.stringify(packageGenus(data, source, dest)) + '\n')
+					record = packageGenus(data, source, dest)
+					outputStream.write(JSON.stringify(record) + '\n')
+					records.push(record)
 					break;
 					
 				case 1:
-					outputStream.write(JSON.stringify(packageSpecies(data, source, dest)) + '\n')
+					record = packageSpecies(data, source, dest)
+					outputStream.write(JSON.stringify(record) + '\n')
+					records.push(record)
 					break;
 			}
 		})
 		.on('end', () => {
 			outputStream.end()
+			
+			const collectionName = (i === 0) ? K.collections.genus : K.collections.species
+			const collection = K.db.collection(collectionName)
+
 			console.log('Coordinates transformed and saved to ', outputFilePath[i])
+			console.log('Writing to collection ', collectionName)
+			saveRecords(collection, records)
+				.then(() => {
+					console.log('Done')
+				})
+				.catch((error) => {
+					console.log('failed: ', error)
+				})
 		})
 }
+
+///
+// Write to database.
+///
+K.db.collection(K.collections.genus)
 
 
 /**
  * FUNCTIONS
  */
+
+/**
+ * createCollections
+ *
+ * This function will create the EU-Forest_Genus and EU-Forest_Species
+ * collections, including indexes. If the collections exist they will be deleted.
+ */
+async function createCollections()
+{
+	///
+	// Init collections.
+	///
+	const collectionGenus = K.db.collection(K.collections.genus)
+	const collectionSpecies = K.db.collection(K.collections.species)
+	
+	///
+	// Drop collections.
+	///
+	await collectionGenus.drop()
+	await collectionSpecies.drop()
+	
+	///
+	// Create collections and indexes.
+	///
+	await collectionGenus.create()
+	for(const index of K.indexes.genus) {
+		await collectionGenus.ensureIndex(index)
+	}
+	await collectionSpecies.create()
+	for(const index of K.indexes.species) {
+		await collectionSpecies.ensureIndex(index)
+	}
+	
+} // createCollections()
 
 /**
  * packageGenus
@@ -224,3 +297,17 @@ function packageSpecies(theCSV, theSource, theDestination)
 	return record                                                       // ==>
 	
 } // packageSpecies()
+
+/**
+ * saveRecords
+ *
+ * This function will save the provided list of records in the provided collection.
+ *
+ * @param theCollection {DocumentCollection}: The collection to write to.
+ * @param theRecords {Object[]}: The records to write.
+ */
+async function saveRecords(theCollection, theRecords)
+{
+	theCollection.saveAll(theRecords)
+
+} // saveRecords()
