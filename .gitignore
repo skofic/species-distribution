@@ -1,3 +1,6 @@
+# Credential files.
+globals.localhost.js
+
 # Node modules
 node_modules/
 # If using npm
