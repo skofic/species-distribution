@@ -103,7 +103,8 @@ for(let i = 0; i < inputFilePath.length; i++)
 			
 			const collectionName = (i === 0) ? K.collections.genus : K.collections.species
 			const collection = K.db.collection(collectionName)
-
+			
+			console.log("")
 			console.log('Coordinates transformed and saved to ', outputFilePath[i])
 			console.log('Writing to collection ', collectionName)
 			saveRecords(collection, records)
@@ -117,9 +118,9 @@ for(let i = 0; i < inputFilePath.length; i++)
 }
 
 ///
-// Write to database.
+// Group species records by location.
 ///
-K.db.collection(K.collections.genus)
+console.log("\nFINISHED.")
 
 
 /**
@@ -139,12 +140,29 @@ async function createCollections()
 	///
 	const collectionGenus = K.db.collection(K.collections.genus)
 	const collectionSpecies = K.db.collection(K.collections.species)
+	const collectionFinal = K.db.collection(K.collections.final)
 	
 	///
 	// Drop collections.
 	///
-	await collectionGenus.drop()
-	await collectionSpecies.drop()
+	try{
+		console.log("Drop collection ", K.collections.genus)
+		await collectionGenus.drop()
+	} catch (error) {
+		console.log("Collection ", K.collections.genus, " does not exist.")
+	}
+	try{
+		console.log("Drop collection ", K.collections.species)
+		await collectionSpecies.drop()
+	} catch (error) {
+		console.log("Collection ", K.collections.species, " does not exist.")
+	}
+	try{
+		console.log("Drop collection ", K.collections.final)
+		await collectionFinal.drop()
+	} catch (error) {
+		console.log("Collection ", K.collections.final, " does not exist.")
+	}
 	
 	///
 	// Create collections and indexes.
@@ -156,6 +174,10 @@ async function createCollections()
 	await collectionSpecies.create()
 	for(const index of K.indexes.species) {
 		await collectionSpecies.ensureIndex(index)
+	}
+	await collectionFinal.create()
+	for(const index of K.indexes.final) {
+		await collectionFinal.ensureIndex(index)
 	}
 	
 } // createCollections()
@@ -251,9 +273,14 @@ function packageSpecies(theCSV, theSource, theDestination)
 	}
 	
 	///
+	// Set properties property.
+	///
+	record.properties = {}
+	
+	///
 	// Set species.
 	///
-	record.species = theCSV['SPECIES NAME']
+	record.properties.species = theCSV['SPECIES NAME']
 	
 	///
 	// Collect DBH.
@@ -266,7 +293,7 @@ function packageSpecies(theCSV, theSource, theDestination)
 		dbh.push('chr_CircBreastHeight_DBH-2')
 	}
 	if(dbh.length > 0) {
-		record.chr_CircBreastHeight_DBH = dbh
+		record.properties.chr_CircBreastHeight_DBH = dbh
 	}
 	
 	///
@@ -283,13 +310,13 @@ function packageSpecies(theCSV, theSource, theDestination)
 		db.push('chr_database_BS')
 	}
 	if(db.length > 0) {
-		record.chr_database = db
+		record.properties.chr_database = db
 	}
 	
 	///
 	// Collect extent of occurrence.
 	///
-	record.chr_EOO = (theCSV.hasOwnProperty('EEO') && theCSV['EEO'] === '1')
+	record.properties.chr_EOO = (theCSV.hasOwnProperty('EEO') && theCSV['EEO'] === '1')
 	
 	///
 	// Create record.
