@@ -15,11 +15,17 @@
 const fs = require('fs')
 const csv = require('csv-parser')
 const proj4 = require('proj4')
+const { Database, aql } = require('arangojs')
 
 ///
 // Import constants.
 ///
 const K = require("./globals.localhost.js")
+
+///
+// connect to database.
+///
+const db = new Database(K.db)
 
 ///
 // File references.
@@ -102,7 +108,7 @@ for(let i = 0; i < inputFilePath.length; i++)
 			outputStream.end()
 			
 			const collectionName = (i === 0) ? K.collections.genus : K.collections.species
-			const collection = K.db.collection(collectionName)
+			const collection = db.collection(collectionName)
 			
 			console.log("")
 			console.log('Coordinates transformed and saved to ', outputFilePath[i])
@@ -120,7 +126,9 @@ for(let i = 0; i < inputFilePath.length; i++)
 ///
 // Group species records by location.
 ///
-console.log("\nFINISHED.")
+console.log("")
+console.log("Aggregate EU-Forest_Species by location.")
+aggregateSpecies()
 
 
 /**
@@ -138,9 +146,9 @@ async function createCollections()
 	///
 	// Init collections.
 	///
-	const collectionGenus = K.db.collection(K.collections.genus)
-	const collectionSpecies = K.db.collection(K.collections.species)
-	const collectionFinal = K.db.collection(K.collections.final)
+	const collectionGenus = db.collection(K.collections.genus)
+	const collectionSpecies = db.collection(K.collections.species)
+	const collectionFinal = db.collection(K.collections.final)
 	
 	///
 	// Drop collections.
@@ -338,3 +346,39 @@ async function saveRecords(theCollection, theRecords)
 	theCollection.saveAll(theRecords)
 
 } // saveRecords()
+
+/**
+ * aggregateSpecies
+ *
+ * This function will aggregate EU-Forest_Species records by location into the
+ * EU-Forest_Occurrences collection.
+ */
+async function aggregateSpecies()
+{
+	///
+	// Init local storage.
+	///
+	const collectionSpecies = db.collection(K.collections.species)
+	const collectionFinal = db.collection(K.collections.final)
+	
+	try {
+		await db.query(aql`
+			FOR doc IN ${collectionSpecies}
+				COLLECT geometry = doc.geometry
+				INTO items
+			INSERT {
+				geometry: geometry,
+				properties: {
+					species_list: UNIQUE(FLATTEN(items[*].doc.properties.species))
+				}
+			} INTO ${collectionFinal}
+		`)
+		
+	} catch (error) {
+		console.error(error.message)
+		return false                                                    // ==>
+	}
+	
+	return true                                                         // ==>
+	
+} // aggregateSpecies()
