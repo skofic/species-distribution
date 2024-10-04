@@ -38,8 +38,8 @@ const fileSpeciesName = 'EU-Forest_Species'
 ///
 // Define the EPSG:3015 and WGS-84 projections.
 ///
-const source = '+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs'
-const dest = proj4.WGS84
+const projectionSource = '+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs'
+const projectionDestination = proj4.WGS84
 
 ///
 // Create streams.
@@ -54,81 +54,75 @@ const outputFilePath = [
 ]
 
 ///
-// Create collections.
+// RUN.
 ///
-createCollections()
+main()
 
 
 /**
- * GENERATE DUMP FILES
+ * MAIN
  */
 
-///
-// Iterate files.
-///
-for(let i = 0; i < inputFilePath.length; i++)
+/**
+ * main
+ *
+ * The main function will perform the following tasks:
+ *
+ * - Drop all collections.
+ * - Create all working collections.
+ * - Import data, package and generate dumps.
+ * - Save data into the database.
+ * - Aggregate species by location.
+ * - Link species data to Chelsa.
+ * - Aggregate species data by Chelsa location.
+ * - Create statistics.
+ * - Remove temporary collections.
+ */
+async function main()
 {
 	///
-	// Init records list.
+	// Create collections.
 	///
-	const records = []
+	await createCollections()
+
+	///
+	// Iterate files.
+	///
+	for (let i = 0; i < inputFilePath.length; i++) {
+		await processFile(i)
+	}
 	
 	///
-	// Create a writable stream for the JSONL output.
+	// Group species records by location.
 	///
-	const outputStream = fs.createWriteStream(outputFilePath[i])
-
+	await aggregateSpecies()
+	
 	///
-	// Parse CSV file.
+	// Link Chelsa to species occurrences.
 	///
-	fs.createReadStream(inputFilePath[i])
-		.pipe(csv())
-		.on('data', (data) =>
-		{
-			///
-			// Parse taxonomy.
-			///
-			let record = {}
-			switch(i)
-			{
-				case 0:
-					record = packageGenus(data, source, dest)
-					outputStream.write(JSON.stringify(record) + '\n')
-					records.push(record)
-					break;
-					
-				case 1:
-					record = packageSpecies(data, source, dest)
-					outputStream.write(JSON.stringify(record) + '\n')
-					records.push(record)
-					break;
-			}
-		})
-		.on('end', () => {
-			outputStream.end()
-			
-			const collectionName = (i === 0) ? K.collections.genus : K.collections.species
-			const collection = db.collection(collectionName)
-			
-			console.log("")
-			console.log('Coordinates transformed and saved to ', outputFilePath[i])
-			console.log('Writing to collection ', collectionName)
-			saveRecords(collection, records)
-				.then(() => {
-					console.log('Done')
-				})
-				.catch((error) => {
-					console.log('failed: ', error)
-				})
-		})
-}
-
-///
-// Group species records by location.
-///
-console.log("")
-console.log("Aggregate EU-Forest_Species by location.")
-aggregateSpecies()
+	await linkChelsa()
+	
+	///
+	// Remove unlinked records.
+	///
+	await cleanChelsa()
+	
+	///
+	// Aggregate Chelsa with species occurrences.
+	///
+	await aggregateChelsa()
+	
+	///
+	// Write Statistics.
+	///
+	await writeStats()
+	
+	///
+	// Drop work collections.
+	///
+	await dropCollections()
+	
+} // main()
 
 
 /**
@@ -146,49 +140,166 @@ async function createCollections()
 	///
 	// Init collections.
 	///
-	const collectionGenus = db.collection(K.collections.genus)
-	const collectionSpecies = db.collection(K.collections.species)
-	const collectionFinal = db.collection(K.collections.final)
+	const collectionNames = [
+		K.collections.genus,
+		K.collections.species,
+		K.collections.location,
+		K.collections.work,
+		K.collections.final,
+		K.collections.stats
+	]
+	const collections = collectionNames.map( (name) => {
+		return db.collection(name)
+	})
 	
 	///
 	// Drop collections.
 	///
-	try{
-		console.log("Drop collection ", K.collections.genus)
-		await collectionGenus.drop()
-	} catch (error) {
-		console.log("Collection ", K.collections.genus, " does not exist.")
-	}
-	try{
-		console.log("Drop collection ", K.collections.species)
-		await collectionSpecies.drop()
-	} catch (error) {
-		console.log("Collection ", K.collections.species, " does not exist.")
-	}
-	try{
-		console.log("Drop collection ", K.collections.final)
-		await collectionFinal.drop()
-	} catch (error) {
-		console.log("Collection ", K.collections.final, " does not exist.")
-	}
+	console.log("Dropping collections")
+	const dropPromises = collections.map(async (collection) => {
+		return await collection.drop()
+	})
+	Promise.allSettled(dropPromises)
+		.then( (results) => {
+			console.log("Dropped all collections")
+		})
 	
 	///
-	// Create collections and indexes.
+	// Create collections.
 	///
-	await collectionGenus.create()
-	for(const index of K.indexes.genus) {
-		await collectionGenus.ensureIndex(index)
-	}
-	await collectionSpecies.create()
-	for(const index of K.indexes.species) {
-		await collectionSpecies.ensureIndex(index)
-	}
-	await collectionFinal.create()
-	for(const index of K.indexes.final) {
-		await collectionFinal.ensureIndex(index)
+	console.log("Creating collections")
+	const createPromises = collections.map(async (collection) => {
+		return await collection.create()
+	})
+	Promise.allSettled(createPromises)
+		.then( (results) => {
+			console.log("Created all collections.")
+		})
+	
+	///
+	// Create indexes.
+	///
+	console.log("Creating indexes")
+	for (const [key, indexes] of Object.entries(K.indexes)) {
+		const collection = db.collection(K.collections[key])
+		const indexPromises = indexes.map(async (index) => {
+			return await collection.ensureIndex(index)
+		})
+		
+		Promise.allSettled(indexPromises)
+			.then( (results) => {
+				console.log("Created indexes for", key)
+			})
 	}
 	
 } // createCollections()
+
+/**
+ * dropCollections
+ *
+ * This function will drop those collections used as temporary storage.
+ */
+async function dropCollections()
+{
+	///
+	// Init collections.
+	///
+	const collectionNames = [
+		K.collections.location,
+		K.collections.work
+	]
+	const collections = collectionNames.map( (name) => {
+		return db.collection(name)
+	})
+	
+	///
+	// Drop collections.
+	///
+	console.log("")
+	console.log("Dropping work collections")
+	const dropPromises = collections.map(async (collection) => {
+		return await collection.drop()
+	})
+	Promise.all(dropPromises)
+		.then( (results) => {
+			console.log("Dropped all work collections")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+		})
+	
+} // dropCollections()
+
+/**
+ * processFile
+ *
+ * The function will do the following:
+ *
+ * - Read CSV file.
+ * - Package data into JSON.
+ * - Insert data into database.
+ *
+ * The provided index has two values: 0 is for the Genus file,
+ * 1 is for the Species file.
+ */
+async function processFile(theIndex)
+{
+	///
+	// Make promise.
+	///
+	return new Promise((resolve, reject) => {
+		const records = []
+		const outputStream = fs.createWriteStream(outputFilePath[theIndex])
+		
+		///
+		// Open a read stream.
+		///
+		fs.createReadStream(inputFilePath[theIndex])
+			.pipe(csv())
+			.on('data', (data) => {
+				let record = {}
+				switch (theIndex) {
+					case 0:
+						// Package genus data.
+						record = packageGenus(data, projectionSource, projectionDestination)
+						break
+					case 1:
+						// Package species data.
+						record = packageSpecies(data, projectionSource, projectionDestination)
+						break
+				}
+				
+				// Write JSONL record.
+				outputStream.write(JSON.stringify(record) + '\n')
+				// Add to records list.
+				records.push(record)
+			})
+			.on('end', async () => {
+				outputStream.end()
+				console.log('')
+				
+				try {
+					// Set collection references.
+					const collectionName = (theIndex === 0) ? K.collections.genus : K.collections.species
+					const collection = db.collection(collectionName)
+					console.log('Coordinates transformed and saved to ', outputFilePath[theIndex])
+					
+					// Save records to database.
+					console.log('Writing to collection ', collectionName)
+					await saveRecords(collection, records)
+					resolve()
+				} catch (error) {
+					console.log('Failed: ', error)
+					reject(error)
+				}
+			})
+			.on('error', (error) => {
+				console.log('Error reading file: ', error)
+				reject(error)
+			})
+	})
+	
+} // processFile()
 
 /**
  * packageGenus
@@ -343,7 +454,12 @@ function packageSpecies(theCSV, theSource, theDestination)
  */
 async function saveRecords(theCollection, theRecords)
 {
-	theCollection.saveAll(theRecords)
+	try {
+		await theCollection.saveAll(theRecords)
+		
+	} catch (error) {
+		console.error(error.message)
+	}
 
 } // saveRecords()
 
@@ -359,26 +475,331 @@ async function aggregateSpecies()
 	// Init local storage.
 	///
 	const collectionSpecies = db.collection(K.collections.species)
-	const collectionFinal = db.collection(K.collections.final)
+	const collectionOccurrences = db.collection(K.collections.location)
 	
+	console.log("")
+	console.log("Aggregate EU-Forest_Species by location.")
 	try {
 		await db.query(aql`
 			FOR doc IN ${collectionSpecies}
 				COLLECT geometry = doc.geometry
 				INTO items
 			INSERT {
+				_key: MD5(
+					TO_STRING(
+						GEO_POINT(
+							geometry.coordinates[0],
+							geometry.coordinates[1]
+						)
+					)
+				),
 				geometry: geometry,
 				properties: {
 					species_list: UNIQUE(FLATTEN(items[*].doc.properties.species))
+				}
+			} INTO ${collectionOccurrences}
+		`)
+		
+	} catch (error) {
+		console.error(error.message)
+	}
+	
+} // aggregateSpecies()
+
+/**
+ * linkChelsa
+ *
+ * This function will link Chelsa to the EU-Forest_Occurrences, by saving the
+ * Chelsa ley reference in the record. This will allow us later to aggregate
+ * the list of species with the specific Chelsa grid element.
+ */
+async function linkChelsa()
+{
+	///
+	// Init local storage.
+	///
+	const collectionWork = db.collection(K.collections.work)
+	const collectionChelsa = db.collection(K.collections.chelsa)
+	const collectionOccurrences = db.collection(K.collections.location)
+	
+	console.log("")
+	console.log("Link EU-Forest_Occurrences to Chelsa.")
+	try {
+		// Link Chelsa.
+		await db.query(aql`
+			FOR spc IN ${collectionOccurrences}
+				LET links = (
+					FOR che IN ${collectionChelsa}
+						FILTER GEO_INTERSECTS(spc.geometry, che.geometry_bounds)
+					RETURN che._key
+				)
+				
+				INSERT {
+					_key: spc._key,
+					geometry: spc.geometry,
+					geometry_hash: links[0],
+					properties: spc.properties
+				}
+				INTO ${collectionWork}
+		`)
+		
+	} catch (error) {
+		console.error(error.message)
+	}
+	
+} // linkChelsa()
+
+/**
+ * cleanChelsa
+ *
+ * This function will link Chelsa to the EU-Forest_Occurrences, by saving the
+ * Chelsa ley reference in the record. This will allow us later to aggregate
+ * the list of species with the specific Chelsa grid element.
+ */
+async function cleanChelsa()
+{
+	///
+	// Init local storage.
+	///
+	const collectionWork = db.collection(K.collections.work)
+	
+	console.log("")
+	console.log("Remove unlinked records.")
+	try {
+		// Remove unlinked.
+		await db.query(aql`
+			FOR doc IN ${collectionWork}
+				FILTER doc.geometry_hash == null
+			REMOVE doc._key IN ${collectionWork}
+		`)
+		
+	} catch (error) {
+		console.error(error.message)
+	}
+	
+} // cleanChelsa()
+
+/**
+ * aggregateChelsa
+ *
+ * This function will aggregate EU-Forest_Work records by Chelsa reference
+ * into the EU-Forest_Chelsa collection.
+ */
+async function aggregateChelsa()
+{
+	///
+	// Init local storage.
+	///
+	const collectionWork = db.collection(K.collections.work)
+	const collectionFinal = db.collection(K.collections.final)
+	const collectionChelsa = db.collection(K.collections.chelsa)
+	
+	console.log("")
+	console.log("Aggregate EU-Forest_Work by Chelsa in EU-Forest_Chelsa.")
+	try {
+		await db.query(aql`
+			FOR doc IN ${collectionWork}
+				COLLECT hash = doc.geometry_hash INTO items
+				FOR che IN ${collectionChelsa}
+					FILTER che._key == hash
+			
+			INSERT {
+				_key: che._key,
+				geometry: (LENGTH(items) > 1)
+					? GEO_MULTIPOINT(items[*].doc.geometry.coordinates)
+					: items[0].doc.geometry,
+				geometry_bounds: che.geometry_bounds,
+				properties: {
+					species_list: UNIQUE(FLATTEN(items[*].doc.properties.species_list)),
+					env_climate_bio01: che.properties["1981-2010"].env_climate_bio01,
+					env_climate_bio04: che.properties["1981-2010"].env_climate_bio04,
+					env_climate_bio05: che.properties["1981-2010"].env_climate_bio05,
+					env_climate_bio06: che.properties["1981-2010"].env_climate_bio06,
+					env_climate_bio12: che.properties["1981-2010"].env_climate_bio12,
+					env_climate_bio15: che.properties["1981-2010"].env_climate_bio15,
+					env_climate_vpd_mean: che.properties["1981-2010"].env_climate_vpd_mean
 				}
 			} INTO ${collectionFinal}
 		`)
 		
 	} catch (error) {
 		console.error(error.message)
-		return false                                                    // ==>
 	}
 	
-	return true                                                         // ==>
+} // aggregateChelsa()
+
+/**
+ * writeStats
+ *
+ * This function will write to the Stats collection, one record for the
+ * EU-Forest data and another for the Chelsa data.
+ */
+async function writeStats()
+{
+	///
+	// Init local storage.
+	///
+	const collectionFinal = db.collection(K.collections.final)
+	const collectionChelsa = db.collection(K.collections.chelsa)
+	const collectionStats = db.collection(K.collections.stats)
 	
-} // aggregateSpecies()
+	console.log("")
+	console.log("Writing statistics")
+	const promises = []
+	
+	// Add EU-Forest stats.
+	promises.push(
+		await db.query(aql`
+		FOR doc IN ${collectionFinal}
+			COLLECT
+			AGGREGATE env_climate_bio01_min = MIN(doc.properties.env_climate_bio01),
+					  env_climate_bio01_avg = AVG(doc.properties.env_climate_bio01),
+					  env_climate_bio01_max = MAX(doc.properties.env_climate_bio01),
+						
+					  env_climate_bio04_min = MIN(doc.properties.env_climate_bio04),
+					  env_climate_bio04_avg = AVG(doc.properties.env_climate_bio04),
+					  env_climate_bio04_max = MAX(doc.properties.env_climate_bio04),
+					  
+					  env_climate_bio05_min = MIN(doc.properties.env_climate_bio05),
+					  env_climate_bio05_avg = AVG(doc.properties.env_climate_bio05),
+					  env_climate_bio05_max = MAX(doc.properties.env_climate_bio05),
+					  
+					  env_climate_bio06_min = MIN(doc.properties.env_climate_bio06),
+					  env_climate_bio06_avg = AVG(doc.properties.env_climate_bio06),
+					  env_climate_bio06_max = MAX(doc.properties.env_climate_bio06),
+					  
+					  env_climate_bio12_min = MIN(doc.properties.env_climate_bio12),
+					  env_climate_bio12_avg = AVG(doc.properties.env_climate_bio12),
+					  env_climate_bio12_max = MAX(doc.properties.env_climate_bio12),
+					  
+					  env_climate_bio15_min = MIN(doc.properties.env_climate_bio15),
+					  env_climate_bio15_avg = AVG(doc.properties.env_climate_bio15),
+					  env_climate_bio15_max = MAX(doc.properties.env_climate_bio15),
+					  
+					  env_climate_vpd_mean_min = MIN(doc.properties.env_climate_vpd_mean),
+					  env_climate_vpd_mean_avg = AVG(doc.properties.env_climate_vpd_mean),
+					  env_climate_vpd_mean_max = MAX(doc.properties.env_climate_vpd_mean)
+			INSERT {
+				_key: "EU-Forest",
+				env_climate_bio01: {
+					min: env_climate_bio01_min,
+					avg: env_climate_bio01_avg,
+					max: env_climate_bio01_max
+				},
+				env_climate_bio04: {
+					min: env_climate_bio04_min,
+					avg: env_climate_bio04_avg,
+					max: env_climate_bio04_max
+				},
+				env_climate_bio05: {
+					min: env_climate_bio05_min,
+					avg: env_climate_bio05_avg,
+					max: env_climate_bio05_max
+				},
+				env_climate_bio06: {
+					min: env_climate_bio06_min,
+					avg: env_climate_bio06_avg,
+					max: env_climate_bio06_max
+				},
+				env_climate_bio12: {
+					min: env_climate_bio12_min,
+					avg: env_climate_bio12_avg,
+					max: env_climate_bio12_max
+				},
+				env_climate_bio15: {
+					min: env_climate_bio15_min,
+					avg: env_climate_bio15_avg,
+					max: env_climate_bio15_max
+				},
+				env_climate_vpd_mean: {
+					min: env_climate_vpd_mean_min,
+					avg: env_climate_vpd_mean_avg,
+					max: env_climate_vpd_mean_max
+				}
+			} INTO ${collectionStats}
+		`)
+	)
+	
+	// Add Chelsa stats.
+	// Remember to index all relevant fields, or the query will take forever.
+	promises.push(
+		await db.query(aql`
+		FOR doc IN ${collectionChelsa}
+			COLLECT
+			AGGREGATE env_climate_bio01_min = MIN(doc.properties["1981-2010"].env_climate_bio01),
+					  env_climate_bio01_avg = AVG(doc.properties["1981-2010"].env_climate_bio01),
+					  env_climate_bio01_max = MAX(doc.properties["1981-2010"].env_climate_bio01),
+						
+					  env_climate_bio04_min = MIN(doc.properties["1981-2010"].env_climate_bio04),
+					  env_climate_bio04_avg = AVG(doc.properties["1981-2010"].env_climate_bio04),
+					  env_climate_bio04_max = MAX(doc.properties["1981-2010"].env_climate_bio04),
+					  
+					  env_climate_bio05_min = MIN(doc.properties["1981-2010"].env_climate_bio05),
+					  env_climate_bio05_avg = AVG(doc.properties["1981-2010"].env_climate_bio05),
+					  env_climate_bio05_max = MAX(doc.properties["1981-2010"].env_climate_bio05),
+					  
+					  env_climate_bio06_min = MIN(doc.properties["1981-2010"].env_climate_bio06),
+					  env_climate_bio06_avg = AVG(doc.properties["1981-2010"].env_climate_bio06),
+					  env_climate_bio06_max = MAX(doc.properties["1981-2010"].env_climate_bio06),
+					  
+					  env_climate_bio12_min = MIN(doc.properties["1981-2010"].env_climate_bio12),
+					  env_climate_bio12_avg = AVG(doc.properties["1981-2010"].env_climate_bio12),
+					  env_climate_bio12_max = MAX(doc.properties["1981-2010"].env_climate_bio12),
+					  
+					  env_climate_bio15_min = MIN(doc.properties["1981-2010"].env_climate_bio15),
+					  env_climate_bio15_avg = AVG(doc.properties["1981-2010"].env_climate_bio15),
+					  env_climate_bio15_max = MAX(doc.properties["1981-2010"].env_climate_bio15),
+					  
+					  env_climate_vpd_mean_min = MIN(doc.properties["1981-2010"].env_climate_vpd_mean),
+					  env_climate_vpd_mean_avg = AVG(doc.properties["1981-2010"].env_climate_vpd_mean),
+					  env_climate_vpd_mean_max = MAX(doc.properties["1981-2010"].env_climate_vpd_mean)
+			INSERT {
+				_key: "Chelsa",
+				env_climate_bio01: {
+					min: env_climate_bio01_min,
+					avg: env_climate_bio01_avg,
+					max: env_climate_bio01_max
+				},
+				env_climate_bio04: {
+					min: env_climate_bio04_min,
+					avg: env_climate_bio04_avg,
+					max: env_climate_bio04_max
+				},
+				env_climate_bio05: {
+					min: env_climate_bio05_min,
+					avg: env_climate_bio05_avg,
+					max: env_climate_bio05_max
+				},
+				env_climate_bio06: {
+					min: env_climate_bio06_min,
+					avg: env_climate_bio06_avg,
+					max: env_climate_bio06_max
+				},
+				env_climate_bio12: {
+					min: env_climate_bio12_min,
+					avg: env_climate_bio12_avg,
+					max: env_climate_bio12_max
+				},
+				env_climate_bio15: {
+					min: env_climate_bio15_min,
+					avg: env_climate_bio15_avg,
+					max: env_climate_bio15_max
+				},
+				env_climate_vpd_mean: {
+					min: env_climate_vpd_mean_min,
+					avg: env_climate_vpd_mean_avg,
+					max: env_climate_vpd_mean_max
+				}
+			} INTO ${collectionStats}
+		`)
+	)
+
+	Promise.all(promises)
+		.then( (results) => {
+			console.log("Written statistics")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+		})
+
+} // writeStats()
