@@ -1,5 +1,5 @@
 /**
- * Create full resolution Chelsa selection for temperature and precipitation.
+ * Dump full resolution Chelsa selection for temperature and precipitation.
  */
 LET stat_chelsa = (
 	FOR stat IN `Stats`
@@ -16,30 +16,21 @@ LET bio12_chelsa_min = stat_chelsa.env_climate_bio12.min
 LET bio01_chelsa_range = bio01_chelsa_max - bio01_chelsa_min
 LET bio12_chelsa_range = bio12_chelsa_max - bio12_chelsa_min
 
-LET result = (
-	FOR doc IN Chelsa
+FOR doc IN Chelsa
 
-		COLLECT mean_annual_temp = doc.properties.`1981-2010`.env_climate_bio01,
-						total_annual_prc = doc.properties.`1981-2010`.env_climate_bio12
-		WITH COUNT INTO items
+	COLLECT mean_annual_temp = doc.properties.`1981-2010`.env_climate_bio01,
+					total_annual_prc = doc.properties.`1981-2010`.env_climate_bio12
+	WITH COUNT INTO items
 
-	INSERT {
-		_key: MD5(TO_STRING([mean_annual_temp, total_annual_prc])),
-		count: items,
-		properties: {
-			env_climate_bio01: mean_annual_temp,
-			env_climate_bio12: total_annual_prc
-		},
-		scale: {
-			env_climate_bio01_ratio: (mean_annual_temp - bio01_chelsa_min) / bio01_chelsa_range,
-			env_climate_bio12_ratio: (total_annual_prc - bio12_chelsa_min) / bio12_chelsa_range
-		}
-	} INTO `Chelsa_Temperature_Precipitation_FULL`
-		OPTIONS {
-			waitForSync: true,
-			overwriteMode: "ignore",
-			keepNull: false
-		}
-)
-
-RETURN "Done!"
+RETURN {
+	_key: MD5(TO_STRING([mean_annual_temp, total_annual_prc])),
+	count: items,
+	properties: {
+		env_climate_bio01: mean_annual_temp,
+		env_climate_bio12: total_annual_prc
+	},
+	scale: {
+		env_climate_bio01_ratio: (mean_annual_temp - bio01_chelsa_min) / bio01_chelsa_range,
+		env_climate_bio12_ratio: (total_annual_prc - bio12_chelsa_min) / bio12_chelsa_range
+	}
+}
