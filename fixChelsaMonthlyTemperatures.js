@@ -23,7 +23,7 @@ const collection = db.collection(collectionName)
 ///
 // Constants and variables.
 ///
-const batchSize = 3
+const batchSize = 1024
 const outputFilePath = path.join(__dirname, 'data/output.jsonl')
 
 ///
@@ -53,10 +53,10 @@ async function processCollection() {
 				const modifiedDoc = await processDocument(doc)
 				writableStream.write(JSON.stringify(modifiedDoc) + '\n')
 			}
-			break
 			
 			// Next page.
 			page += batchSize
+			console.log(`Written ${page} records`)
 		}
 		
 		writableStream.end()
