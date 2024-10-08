@@ -1,0 +1,119 @@
+// AQL query:
+/**
+ * Correct Chelsa montly temperatures.
+ */
+FOR che IN Chelsa
+
+  LET uno = (
+    LET period = che.properties["1981-2010"].std_date_span_month
+    LET months = (
+      FOR month in period
+      RETURN {
+        std_month: month.std_month,
+        env_climate_pr: month.env_climate_pr,
+        env_climate_tas: month.env_climate_tas - 273.15,
+        env_climate_tasmin: month.env_climate_tasmin - 273.15,
+        env_climate_tasmax: month.env_climate_tasmax - 273.15
+      }
+    )
+    return {
+      properties: {
+        "1981-2010": {
+          env_climate_tasmin: MIN(months[*].env_climate_tasmin),
+          env_climate_tasmax: MAX(months[*].env_climate_tasmax),
+          env_climate_tas: AVERAGE(months[*].env_climate_tas),
+          env_climate_pr: AVERAGE(months[*].env_climate_pr),
+          std_date_span_month: months
+        }
+      }
+    }
+  )
+
+  LET due = (
+    LET period = che.properties["2011-2040"][ "MPI-ESM1-2-HR"]["ssp370"].std_date_span_month
+    LET months = (
+      FOR month in period
+      RETURN {
+        std_month: month.std_month,
+        env_climate_pr: month.env_climate_pr,
+        env_climate_tas: month.env_climate_tas - 273.15,
+        env_climate_tasmin: month.env_climate_tasmin - 273.15,
+        env_climate_tasmax: month.env_climate_tasmax - 273.15
+      }
+    )
+    return {
+      properties: {
+        "2011-2040": {
+          "MPI-ESM1-2-HR": {
+            "ssp370": {
+              env_climate_tasmin: MIN(months[*].env_climate_tasmin),
+              env_climate_tasmax: MAX(months[*].env_climate_tasmax),
+              env_climate_tas: AVERAGE(months[*].env_climate_tas),
+              env_climate_pr: AVERAGE(months[*].env_climate_pr),
+              std_date_span_month: months
+            }
+          }
+        }
+      }
+    }
+  )
+
+  LET tre = (
+    LET period = che.properties["2041-2070"][ "MPI-ESM1-2-HR"]["ssp370"].std_date_span_month
+    LET months = (
+      FOR month in period
+      RETURN {
+        std_month: month.std_month,
+        env_climate_pr: month.env_climate_pr,
+        env_climate_tas: month.env_climate_tas - 273.15,
+        env_climate_tasmin: month.env_climate_tasmin - 273.15,
+        env_climate_tasmax: month.env_climate_tasmax - 273.15
+      }
+    )
+    return {
+      properties: {
+        "2041-2070": {
+          "MPI-ESM1-2-HR": {
+            "ssp370": {
+              env_climate_tasmin: MIN(months[*].env_climate_tasmin),
+              env_climate_tasmax: MAX(months[*].env_climate_tasmax),
+              env_climate_tas: AVERAGE(months[*].env_climate_tas),
+              env_climate_pr: AVERAGE(months[*].env_climate_pr),
+              std_date_span_month: months
+            }
+          }
+        }
+      }
+    }
+  )
+
+  LET qua = (
+    LET period = che.properties["2071-2100"][ "MPI-ESM1-2-HR"]["ssp370"].std_date_span_month
+    LET months = (
+      FOR month in period
+      RETURN {
+        std_month: month.std_month,
+        env_climate_pr: month.env_climate_pr,
+        env_climate_tas: month.env_climate_tas - 273.15,
+        env_climate_tasmin: month.env_climate_tasmin - 273.15,
+        env_climate_tasmax: month.env_climate_tasmax - 273.15
+      }
+    )
+    return {
+      properties: {
+        "2071-2100": {
+          "MPI-ESM1-2-HR": {
+            "ssp370": {
+              env_climate_tasmin: MIN(months[*].env_climate_tasmin),
+              env_climate_tasmax: MAX(months[*].env_climate_tasmax),
+              env_climate_tas: AVERAGE(months[*].env_climate_tas),
+              env_climate_pr: AVERAGE(months[*].env_climate_pr),
+              std_date_span_month: months
+            }
+          }
+        }
+      }
+    }
+  )
+
+RETURN MERGE_RECURSIVE(UNSET(che, "_id", "_rev"), uno[0], due[0], tre[0], qua[0])
