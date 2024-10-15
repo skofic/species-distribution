@@ -1,3 +1,5 @@
+"env_climate_pr"
+"env_climate_tas"
 "env_climate_bio01"
 "env_climate_bio04"
 "env_climate_bio05"
