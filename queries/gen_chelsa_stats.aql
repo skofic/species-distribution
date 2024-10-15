@@ -1,0 +1,87 @@
+/**
+ * Generate statistics for Chelsa.
+ */
+FOR doc IN `Chelsa`
+  COLLECT
+  AGGREGATE env_climate_pr_min = MIN(doc.properties["1981-2010"].env_climate_pr),
+            env_climate_pr_avg = AVG(doc.properties["1981-2010"].env_climate_pr),
+            env_climate_pr_max = MAX(doc.properties["1981-2010"].env_climate_pr),
+
+            env_climate_tas_min = MIN(doc.properties["1981-2010"].env_climate_tas),
+            env_climate_tas_avg = AVG(doc.properties["1981-2010"].env_climate_tas),
+            env_climate_tas_max = MAX(doc.properties["1981-2010"].env_climate_tas),
+
+            env_climate_bio01_min = MIN(doc.properties["1981-2010"].env_climate_bio01),
+            env_climate_bio01_avg = AVG(doc.properties["1981-2010"].env_climate_bio01),
+            env_climate_bio01_max = MAX(doc.properties["1981-2010"].env_climate_bio01),
+
+            env_climate_bio04_min = MIN(doc.properties["1981-2010"].env_climate_bio04),
+            env_climate_bio04_avg = AVG(doc.properties["1981-2010"].env_climate_bio04),
+            env_climate_bio04_max = MAX(doc.properties["1981-2010"].env_climate_bio04),
+
+            env_climate_bio05_min = MIN(doc.properties["1981-2010"].env_climate_bio05),
+            env_climate_bio05_avg = AVG(doc.properties["1981-2010"].env_climate_bio05),
+            env_climate_bio05_max = MAX(doc.properties["1981-2010"].env_climate_bio05),
+
+            env_climate_bio06_min = MIN(doc.properties["1981-2010"].env_climate_bio06),
+            env_climate_bio06_avg = AVG(doc.properties["1981-2010"].env_climate_bio06),
+            env_climate_bio06_max = MAX(doc.properties["1981-2010"].env_climate_bio06),
+
+            env_climate_bio12_min = MIN(doc.properties["1981-2010"].env_climate_bio12),
+            env_climate_bio12_avg = AVG(doc.properties["1981-2010"].env_climate_bio12),
+            env_climate_bio12_max = MAX(doc.properties["1981-2010"].env_climate_bio12),
+
+            env_climate_bio15_min = MIN(doc.properties["1981-2010"].env_climate_bio15),
+            env_climate_bio15_avg = AVG(doc.properties["1981-2010"].env_climate_bio15),
+            env_climate_bio15_max = MAX(doc.properties["1981-2010"].env_climate_bio15),
+
+            env_climate_vpd_mean_min = MIN(doc.properties["1981-2010"].env_climate_vpd_mean),
+            env_climate_vpd_mean_avg = AVG(doc.properties["1981-2010"].env_climate_vpd_mean),
+            env_climate_vpd_mean_max = MAX(doc.properties["1981-2010"].env_climate_vpd_mean)
+RETURN {
+  env_climate_pr: {
+    min: env_climate_pr_min,
+    avg: env_climate_pr_avg,
+    max: env_climate_pr_max
+  },
+  env_climate_tas: {
+    min: env_climate_tas_min,
+    avg: env_climate_tas_avg,
+    max: env_climate_tas_max
+  },
+  env_climate_bio01: {
+    min: env_climate_bio01_min,
+    avg: env_climate_bio01_avg,
+    max: env_climate_bio01_max
+  },
+  env_climate_bio04: {
+    min: env_climate_bio04_min,
+    avg: env_climate_bio04_avg,
+    max: env_climate_bio04_max
+  },
+  env_climate_bio05: {
+    min: env_climate_bio05_min,
+    avg: env_climate_bio05_avg,
+    max: env_climate_bio05_max
+  },
+  env_climate_bio06: {
+    min: env_climate_bio06_min,
+    avg: env_climate_bio06_avg,
+    max: env_climate_bio06_max
+  },
+  env_climate_bio12: {
+    min: env_climate_bio12_min,
+    avg: env_climate_bio12_avg,
+    max: env_climate_bio12_max
+  },
+  env_climate_bio15: {
+    min: env_climate_bio15_min,
+    avg: env_climate_bio15_avg,
+    max: env_climate_bio15_max
+  },
+  env_climate_vpd_mean: {
+    min: env_climate_vpd_mean_min,
+    avg: env_climate_vpd_mean_avg,
+    max: env_climate_vpd_mean_max
+  }
+}
