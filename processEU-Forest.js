@@ -91,6 +91,7 @@ async function main()
 	// Iterate files.
 	///
 	if(K.flags.ProcessEUForest.processFiles) {
+		console.log("\nProcessing files:")
 		for (let i = 0; i < inputFilePath.length; i++) {
 			await processFile(i)
 		}
@@ -190,9 +191,13 @@ async function createCollections()
 	const dropPromises = collections.map(async (collection) => {
 		return await collection.drop()
 	})
-	Promise.allSettled(dropPromises)
+	await Promise.allSettled(dropPromises)
 		.then( (results) => {
 			console.log("Dropped all collections")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return
 		})
 	
 	///
@@ -202,26 +207,35 @@ async function createCollections()
 	const createPromises = collections.map(async (collection) => {
 		return await collection.create()
 	})
-	Promise.allSettled(createPromises)
+	await Promise.allSettled(createPromises)
 		.then( (results) => {
 			console.log("Created all collections.")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return
 		})
 	
 	///
 	// Create indexes.
 	///
 	console.log("Creating indexes")
+	const indexPromises = []
 	for (const [key, indexes] of Object.entries(K.indexes)) {
+		console.log("Creating indexes for", key)
 		const collection = db.collection(K.collections[key])
-		const indexPromises = indexes.map(async (index) => {
-			return await collection.ensureIndex(index)
-		})
-		
-		Promise.allSettled(indexPromises)
-			.then( (results) => {
-				console.log("Created indexes for", key)
-			})
+		for (const index of indexes) {
+			indexPromises.push(collection.ensureIndex(index))
+		}
 	}
+	await Promise.allSettled(indexPromises)
+		.then( (results) => {
+			console.log("Created all indexes.")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return
+		})
 	
 } // createCollections()
 
@@ -251,7 +265,7 @@ async function dropCollections()
 	const dropPromises = collections.map(async (collection) => {
 		return await collection.drop()
 	})
-	Promise.all(dropPromises)
+	await Promise.all(dropPromises)
 		.then( (results) => {
 			console.log("Dropped all work collections")
 		})
@@ -642,6 +656,8 @@ async function aggregateChelsa()
 				geometry_bounds: che.geometry_bounds,
 				properties: {
 					species_list: UNIQUE(FLATTEN(items[*].doc.properties.species_list)),
+					env_climate_pr: che.properties["1981-2010"].env_climate_pr,
+					env_climate_tas: che.properties["1981-2010"].env_climate_tas,
 					env_climate_bio01: che.properties["1981-2010"].env_climate_bio01,
 					env_climate_bio04: che.properties["1981-2010"].env_climate_bio04,
 					env_climate_bio05: che.properties["1981-2010"].env_climate_bio05,
@@ -683,7 +699,15 @@ async function writeEUStats()
 			LET result = (
 				FOR doc IN ${collectionFinal}
 					COLLECT
-					AGGREGATE env_climate_bio01_min = MIN(doc.properties.env_climate_bio01),
+					AGGREGATE env_climate_pr_min = MIN(doc.properties.env_climate_pr),
+							  env_climate_pr_avg = AVG(doc.properties.env_climate_pr),
+							  env_climate_pr_max = MAX(doc.properties.env_climate_pr),
+								
+							  env_climate_tas_min = MIN(doc.properties.env_climate_tas),
+							  env_climate_tas_avg = AVG(doc.properties.env_climate_tas),
+							  env_climate_tas_max = MAX(doc.properties.env_climate_tas),
+								
+							  env_climate_bio01_min = MIN(doc.properties.env_climate_bio01),
 							  env_climate_bio01_avg = AVG(doc.properties.env_climate_bio01),
 							  env_climate_bio01_max = MAX(doc.properties.env_climate_bio01),
 								
@@ -712,6 +736,16 @@ async function writeEUStats()
 							  env_climate_vpd_mean_max = MAX(doc.properties.env_climate_vpd_mean)
 					INSERT {
 						_key: "EU-Forest",
+						env_climate_pr: {
+							min: env_climate_pr_min,
+							avg: env_climate_pr_avg,
+							max: env_climate_pr_max
+						},
+						env_climate_tas: {
+							min: env_climate_tas_min,
+							avg: env_climate_tas_avg,
+							max: env_climate_tas_max
+						},
 						env_climate_bio01: {
 							min: env_climate_bio01_min,
 							avg: env_climate_bio01_avg,
@@ -784,7 +818,15 @@ async function writeChelsaStats()
 			LET result = (
 				FOR doc IN ${collectionChelsa}
 					COLLECT
-					AGGREGATE env_climate_bio01_min = MIN(doc.properties["1981-2010"].env_climate_bio01),
+					AGGREGATE env_climate_pr_min = MIN(doc.properties["1981-2010"].env_climate_pr),
+							  env_climate_pr_avg = AVG(doc.properties["1981-2010"].env_climate_pr),
+							  env_climate_pr_max = MAX(doc.properties["1981-2010"].env_climate_pr),
+								
+							  env_climate_tas_min = MIN(doc.properties["1981-2010"].env_climate_tas),
+							  env_climate_tas_avg = AVG(doc.properties["1981-2010"].env_climate_tas),
+							  env_climate_tas_max = MAX(doc.properties["1981-2010"].env_climate_tas),
+								
+							  env_climate_bio01_min = MIN(doc.properties["1981-2010"].env_climate_bio01),
 							  env_climate_bio01_avg = AVG(doc.properties["1981-2010"].env_climate_bio01),
 							  env_climate_bio01_max = MAX(doc.properties["1981-2010"].env_climate_bio01),
 								
@@ -813,6 +855,16 @@ async function writeChelsaStats()
 							  env_climate_vpd_mean_max = MAX(doc.properties["1981-2010"].env_climate_vpd_mean)
 					INSERT {
 						_key: "Chelsa",
+						env_climate_pr: {
+							min: env_climate_pr_min,
+							avg: env_climate_pr_avg,
+							max: env_climate_pr_max
+						},
+						env_climate_tas: {
+							min: env_climate_tas_min,
+							avg: env_climate_tas_avg,
+							max: env_climate_tas_max
+						},
 						env_climate_bio01: {
 							min: env_climate_bio01_min,
 							avg: env_climate_bio01_avg,
@@ -849,6 +901,7 @@ async function writeChelsaStats()
 							max: env_climate_vpd_mean_max
 						}
 					} INTO ${collectionStats}
+					  OPTIONS { waitForSync: true }
 			)
 			
 			RETURN "Done!"
@@ -885,32 +938,32 @@ async function makeTempPrecChelsaFull()
 				RETURN stat
 			)[0]
 			
-			LET bio01_chelsa_max = stat_chelsa.env_climate_bio01.max
-			LET bio01_chelsa_min = stat_chelsa.env_climate_bio01.min
+			LET tas_chelsa_max = stat_chelsa.env_climate_tas.max
+			LET tas_chelsa_min = stat_chelsa.env_climate_tas.min
 			
-			LET bio12_chelsa_max = stat_chelsa.env_climate_bio12.max
-			LET bio12_chelsa_min = stat_chelsa.env_climate_bio12.min
+			LET pr_chelsa_max = stat_chelsa.env_climate_pr.max
+			LET pr_chelsa_min = stat_chelsa.env_climate_pr.min
 			
-			LET bio01_chelsa_range = bio01_chelsa_max - bio01_chelsa_min
-			LET bio12_chelsa_range = bio12_chelsa_max - bio12_chelsa_min
+			LET tas_chelsa_range = tas_chelsa_max - tas_chelsa_min
+			LET pr_chelsa_range = pr_chelsa_max - pr_chelsa_min
 			
 			LET result = (
 				FOR doc IN ${collectionChelsa}
 				
-					COLLECT mean_annual_temp = doc.properties["1981-2010"].env_climate_bio01,
-							total_annual_prc = doc.properties["1981-2010"].env_climate_bio12
+					COLLECT mean_annual_temp = doc.properties["1981-2010"].env_climate_tas,
+							mean_annual_prc = doc.properties["1981-2010"].env_climate_pr
 					WITH COUNT INTO items
 				
 				INSERT {
-					_key: MD5(TO_STRING([mean_annual_temp, total_annual_prc])),
+					_key: MD5(TO_STRING([mean_annual_temp, mean_annual_prc])),
 					count: items,
 					properties: {
-						env_climate_bio01: mean_annual_temp,
-						env_climate_bio12: total_annual_prc
+						env_climate_tas: mean_annual_temp,
+						env_climate_pr: mean_annual_prc
 					},
 					scale: {
-						env_climate_bio01_ratio: (mean_annual_temp - bio01_chelsa_min) / bio01_chelsa_range,
-						env_climate_bio12_ratio: (total_annual_prc - bio12_chelsa_min) / bio12_chelsa_range
+						env_climate_tas_ratio: (mean_annual_temp - tas_chelsa_min) / tas_chelsa_range,
+						env_climate_pr_ratio: (mean_annual_prc - pr_chelsa_min) / pr_chelsa_range
 					}
 				} INTO ${collectionTempPrecFull}
 					OPTIONS {
