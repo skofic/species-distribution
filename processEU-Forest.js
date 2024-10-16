@@ -140,17 +140,17 @@ async function main()
 	}
 	
 	///
+	// Write EU-Forest species list.
+	///
+	if(K.flags.ProcessEUForest.writeEUSpeciesList) {
+		await writeSpeciesStats()
+	}
+	
+	///
 	// Drop work collections.
 	///
 	if(K.flags.ProcessEUForest.dropCollections) {
 		await dropCollections()
-	}
-	
-	///
-	// Build temperature-precipitation pair for Chelsa (FULL).
-	///
-	if(K.flags.ProcessEUForest.makeTempPrecChelsaFull) {
-		await makeTempPrecChelsaFull()
 	}
 	
 } // main()
@@ -171,17 +171,16 @@ async function createCollections()
 	///
 	// Init collections.
 	///
-	const collectionNames = [
-		K.collections.genus,
-		K.collections.species,
-		K.collections.location,
-		K.collections.work,
-		K.collections.final,
-		K.collections.stats,
-		K.collections.temp_prec_chelsa_full
+	const collectionKeys = [
+		'genus',
+		'species',
+		'location',
+		'work',
+		'final',
+		'stats'
 	]
-	const collections = collectionNames.map( (name) => {
-		return db.collection(name)
+	const collections = collectionKeys.map( (key) => {
+		return db.collection(K.collections[key])
 	})
 	
 	///
@@ -221,10 +220,10 @@ async function createCollections()
 	///
 	console.log("Creating indexes")
 	const indexPromises = []
-	for (const [key, indexes] of Object.entries(K.indexes)) {
+	for (const key of collectionKeys) {
 		console.log("Creating indexes for", key)
 		const collection = db.collection(K.collections[key])
-		for (const index of indexes) {
+		for (const index of K.indexes[key]) {
 			indexPromises.push(collection.ensureIndex(index))
 		}
 	}
@@ -914,70 +913,38 @@ async function writeChelsaStats()
 } // writeChelsaStats()
 
 /**
- * makeTempPrecChelsaFull
+ * writeSpeciesStats
  *
- * This function will aggregate Chelsa temperature and precipitation
- * with full resolution.
+ * This function will write to the Stats collection, one record for the
+ * species list.
  */
-async function makeTempPrecChelsaFull()
+async function writeSpeciesStats()
 {
 	///
 	// Init local storage.
 	///
+	const collectionSpecies = db.collection(K.collections.species)
 	const collectionStats = db.collection(K.collections.stats)
-	const collectionChelsa = db.collection(K.collections.chelsa)
-	const collectionTempPrecFull = db.collection(K.collections.temp_prec_chelsa_full)
 	
 	console.log("")
-	console.log("Aggregate Chelsa by temperature and precipitation, full resolution.")
+	console.log("Writing species list")
+	const promises = []
+	
+	// Add species list.
 	try {
 		await db.query(aql`
-			LET stat_chelsa = (
-				FOR stat IN ${collectionStats}
-					FILTER stat._key == "Chelsa"
-				RETURN stat
-			)[0]
-			
-			LET tas_chelsa_max = stat_chelsa.env_climate_tas.max
-			LET tas_chelsa_min = stat_chelsa.env_climate_tas.min
-			
-			LET pr_chelsa_max = stat_chelsa.env_climate_pr.max
-			LET pr_chelsa_min = stat_chelsa.env_climate_pr.min
-			
-			LET tas_chelsa_range = tas_chelsa_max - tas_chelsa_min
-			LET pr_chelsa_range = pr_chelsa_max - pr_chelsa_min
-			
-			LET result = (
-				FOR doc IN ${collectionChelsa}
-				
-					COLLECT mean_annual_temp = doc.properties["1981-2010"].env_climate_tas,
-							mean_annual_prc = doc.properties["1981-2010"].env_climate_pr
-					WITH COUNT INTO items
-				
-				INSERT {
-					_key: MD5(TO_STRING([mean_annual_temp, mean_annual_prc])),
-					count: items,
-					properties: {
-						env_climate_tas: mean_annual_temp,
-						env_climate_pr: mean_annual_prc
-					},
-					scale: {
-						env_climate_tas_ratio: (mean_annual_temp - tas_chelsa_min) / tas_chelsa_range,
-						env_climate_pr_ratio: (mean_annual_prc - pr_chelsa_min) / pr_chelsa_range
-					}
-				} INTO ${collectionTempPrecFull}
-					OPTIONS {
-						waitForSync: true,
-						overwriteMode: "ignore",
-						keepNull: false
-					}
-			)
-			
-			RETURN "Done!"
+			INSERT {
+				_key: "Species",
+				species_list: UNIQUE(
+					FOR doc IN ${collectionSpecies}
+					  COLLECT species = doc.properties.species
+					RETURN species
+				)
+			} INTO ${collectionStats}
 		`)
-		
+		console.log("  Written species list")
 	} catch (error) {
-		console.error(error.message)
+		console.log(error.message)
 	}
 	
-} // makeTempPrecChelsaFull()
+} // writeSpeciesStats()
