@@ -1,9 +1,9 @@
 /**
- * Dump full resolution Chelsa selection for temperature and precipitation.
- */
+* Create full resolution EU-Forest selection for temperature and precipitation.
+*/
 LET stat_chelsa = (
 	FOR stat IN `Stats`
-		FILTER stat._key == "Chelsa"
+	FILTER stat._key == "Chelsa"
 	RETURN stat
 )[0]
 
@@ -16,15 +16,16 @@ LET pr_chelsa_min = stat_chelsa.env_climate_pr.min
 LET tas_chelsa_range = tas_chelsa_max - tas_chelsa_min
 LET pr_chelsa_range = pr_chelsa_max - pr_chelsa_min
 
-FOR doc IN Chelsa
+FOR doc IN `EU-Forest_Chelsa`
 
-	COLLECT mean_annual_temp = doc.properties.`1981-2010`.env_climate_tas,
-					total_annual_prc = doc.properties.`1981-2010`.env_climate_pr
-	WITH COUNT INTO items
+	COLLECT mean_annual_temp = doc.properties.env_climate_tas,
+			total_annual_prc = doc.properties.env_climate_pr
+	INTO items
 
 RETURN {
 	_key: MD5(TO_STRING([mean_annual_temp, total_annual_prc])),
-	count: items,
+	count: LENGTH(items),
+	species_list: UNIQUE(FLATTEN(items[*].doc.properties.species_list)),
 	properties: {
 		env_climate_tas: mean_annual_temp,
 		env_climate_pr: total_annual_prc
