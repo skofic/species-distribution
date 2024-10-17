@@ -1,0 +1,9 @@
+/**
+ * Dump Chelsa temperature/precipitation to CSV.
+ * Note: the file will be huge.
+ */
+FOR doc IN `Chelsa_Temperature_Precipitation_FULL`
+RETURN {
+  env_climate_tas: doc.properties.env_climate_tas,
+  env_climate_pr: doc.properties.env_climate_pr
+}
