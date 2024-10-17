@@ -208,8 +208,8 @@ async function makeTempPrecChelsaFull()
 					keepNull: false
 				}
 		`, {}, {
-			maxRuntime: 0, // Indefinite maximum runtime
-			timeout: 1800000 // 30 minutes
+			maxRuntime: K.settings.maxRuntime,
+			timeout: K.settings.timeout
 		})
 		
 		for await(const item of cursor) {
@@ -283,8 +283,8 @@ async function makeTempPrecEUForestFull()
 						keepNull: false
 					}
 		`, {}, {
-			maxRuntime: 0, // Indefinite maximum runtime
-			timeout: 1800000 // 30 minutes
+			maxRuntime: K.settings.maxRuntime,
+			timeout: K.settings.timeout
 		})
 		
 		for await(const item of cursor) {
