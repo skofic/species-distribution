@@ -1,0 +1,34 @@
+/**
+ * Combine EU-Forest species occurrences with matching Chelsa grid elements.
+ *
+ * Aggregate EU-Forest species occurrences by Chelsa grid.
+ *
+ * Expects the following bind variables:
+ * @@collectionWork: 'EU-Forest_Work' Aggregated species observations by coordinates with Chelsa grid reference.
+ * @@collectionChelsa: 'Chelsa' The Chelsa collection.
+ * @@collectionFinal: 'EU-Forest_Chelsa' The EU-Forest species occurrences aggregated by Chelsa grid elements.
+ */
+FOR doc IN @@collectionWork
+    COLLECT hash = doc.geometry_hash INTO items
+    FOR che IN @@collectionChelsa
+        FILTER che._key == hash
+
+INSERT {
+    _key: che._key,
+    geometry: (LENGTH(items) > 1)
+        ? GEO_MULTIPOINT(items[*].doc.geometry.coordinates)
+        : items[0].doc.geometry,
+    geometry_bounds: che.geometry_bounds,
+    properties: {
+        species_list: UNIQUE(FLATTEN(items[*].doc.properties.species_list)),
+        env_climate_pr: che.properties["1981-2010"].env_climate_pr,
+        env_climate_tas: che.properties["1981-2010"].env_climate_tas,
+        env_climate_bio01: che.properties["1981-2010"].env_climate_bio01,
+        env_climate_bio04: che.properties["1981-2010"].env_climate_bio04,
+        env_climate_bio05: che.properties["1981-2010"].env_climate_bio05,
+        env_climate_bio06: che.properties["1981-2010"].env_climate_bio06,
+        env_climate_bio12: che.properties["1981-2010"].env_climate_bio12,
+        env_climate_bio15: che.properties["1981-2010"].env_climate_bio15,
+        env_climate_vpd_mean: che.properties["1981-2010"].env_climate_vpd_mean
+    }
+} INTO @@collectionFinal

@@ -1,0 +1,11 @@
+/**
+ * Remove unlinked species occurrences.
+ *
+ * Find eventual species occurrences that lie outside of Chelsa coordinates grid.
+ *
+ * Expects the following bind variables:
+ * @@collectionWork: 'Aggregated species observations by coordinates with Chelsa grid reference.
+ */
+FOR doc IN @@collectionWork
+    FILTER doc.geometry_hash == null
+REMOVE doc._key IN @@collectionWork

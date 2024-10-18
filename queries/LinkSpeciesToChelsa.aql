@@ -1,0 +1,23 @@
+/**
+ * Intersect EU-Forest_Occurrences with Chelsa grid.
+ *
+ * Mark all species occurrences with corresponding Chelsa grid identifier.
+ *
+ * Expects the following bind variables:
+ * @@collectionWork: 'EU-Forest_Work' Aggregated species observations by coordinates with Chelsa grid reference.
+ * @@collectionChelsa: 'Chelsa' The Chelsa collection.
+ * @@collectionOccurrences: 'EU-Forest_Occurrences' The collection of aggregated species observations by location.
+ */
+FOR spc IN @@collectionOccurrences
+LET links = (
+    FOR che IN @@collectionChelsa
+        FILTER GEO_INTERSECTS(spc.geometry, che.geometry_bounds)
+    RETURN che._key
+)
+
+INSERT {
+    _key: spc._key,
+    geometry: spc.geometry,
+    geometry_hash: links[0],
+    properties: spc.properties
+} INTO @@collectionWork

@@ -1,0 +1,24 @@
+/**
+ * Aggregate EU-Forest_Species by location.
+ *
+ * Expects the following bind variables:
+ * @@collectionSpecies: 'EU-Forest_Species' The collection of species observations, one record per species.
+ * @@collectionOccurrences: 'EU-Forest_Occurrences' The collection of aggregated species observations by location.
+ */
+FOR doc IN @@collectionSpecies
+    COLLECT geometry = doc.geometry
+    INTO items
+INSERT {
+    _key: MD5(
+        TO_STRING(
+            GEO_POINT(
+                geometry.coordinates[0],
+                geometry.coordinates[1]
+            )
+        )
+    ),
+    geometry: geometry,
+    properties: {
+        species_list: UNIQUE(FLATTEN(items[*].doc.properties.species))
+    }
+} INTO @@collectionOccurrences

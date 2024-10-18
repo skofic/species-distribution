@@ -1,0 +1,17 @@
+/**
+ * Write list of species in statistics.
+ *
+ * Write a record with the list on mentioned species into the stats collection.
+ *
+ * Expects the following bind variables:
+ * @@collectionStats: 'Stats' General statistics.
+ * @@collectionSpecies: 'EU-Forest_Species' The collection of species observations, one record per species.
+ */
+INSERT {
+    _key: "Species",
+    species_list: UNIQUE(
+        FOR doc IN @@collectionSpecies
+          COLLECT species = doc.properties.species
+        RETURN species
+    )
+} INTO @@collectionStats
