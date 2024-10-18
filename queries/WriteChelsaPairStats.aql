@@ -1,0 +1,19 @@
+
+/**
+ * Set Chelsa indicators pair statistics.
+ *
+ * Get count maximum and add "weight" property ranging from 0 to 1.
+ *
+ * Expects the following bind variables:
+ * @@collectionPair: Current pair collection.
+ * @@collectionStats: 'Stats' General statistics.
+ */
+FOR doc IN @@collectionPair
+    COLLECT AGGREGATE min = MIN(doc.count),
+                      max = MAX(doc.count)
+
+INSERT {
+    _key: "Chelsa_Temp_Prec",
+    weight: { min, max }
+} INTO @@collectionStats
+  OPTIONS { waitForSync: true }
