@@ -177,7 +177,11 @@ async function createCollections()
 		'location',
 		'work',
 		'final',
-		'stats'
+		'stats',
+		'temp_prec_chelsa_full',
+		'temp_prec_eu_full',
+		'temp_prec_chelsa_round',
+		'temp_prec_eu_round'
 	]
 	const collections = collectionKeys.map( (key) => {
 		return db.collection(K.collections[key])
