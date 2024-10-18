@@ -43,6 +43,25 @@ then
 fi
 
 ###
+# Set Chelsa temperature and precipitation statistics.
+###
+echo ""
+echo "******************************************************************"
+echo "* Set Chelsa temperature and precipitation statistics.            "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/WriteChelsaPairStats.aql \
+  '{"@@collectionStats": "Stats", "@@collectionPair": "Chelsa_Temperature_Precipitation_FULL"}'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
 # Dump EU-Forest full resolution temperature and precipitation.
 ###
 echo ""
