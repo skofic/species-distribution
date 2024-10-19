@@ -2,19 +2,35 @@
 
 ###
 # Create temperature/precipitation pair, full resolution.
+#
+# $1: Pair key.
+# $2: Indicator X.
+# $3: Indicator Y.
 ###
 
 ###
-# Dump Chelsa full resolution temperature and precipitation.
+# GLOBALS
 ###
+collectionChelsaFull="${1}_chelsa_full"
+collectionEUFull="${1}_eu_full"
+
+echo ""
 echo "******************************************************************"
-echo "* Dump Chelsa full resolution temperature and precipitation.      "
+echo "*** Pair: ${2} and ${3} in ${collectionChelsaFull} and ${collectionEUFull}"
+echo "******************************************************************"
+
+###
+# Dump Chelsa pair full resolution.
+###
+echo ""
+echo "******************************************************************"
+echo "* Dump Chelsa full resolution pair.                               "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
   SpeciesOccurrences \
-  'Chelsa_Temperature_Precipitation_FULL' \
-  ./Workshop/species-distribution/queries/ChelsaFullTemperaturePrecipitation.aql \
-  '{"@@collectionStats": "Stats", "@@collectionChelsa": "Chelsa"}'
+  "$collectionChelsaFull" \
+  ./Workshop/species-distribution/queries/DumpChelsaPair.aql \
+  "{\"@@collectionChelsa\": \"Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -24,16 +40,74 @@ then
 fi
 
 ###
-# Load Chelsa full resolution temperature and precipitation.
+# Load Chelsa full resolution pair.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Load Chelsa full resolution temperature and precipitation.      "
+echo "* Load Chelsa full resolution pair.                               "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
-  'Chelsa_Temperature_Precipitation_FULL' \
-  'Chelsa_Temperature_Precipitation_FULL'
+  "$collectionChelsaFull" \
+  "$collectionChelsaFull"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Set Chelsa pair statistics.
+###
+echo ""
+echo "******************************************************************"
+echo "* Set Chelsa pair statistics.                                     "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"${collectionChelsaFull}\", \"key\": \"${collectionChelsaFull}\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Dump EU-Forest full resolution pair.
+###
+echo ""
+echo "******************************************************************"
+echo "* Dump EU-Forest full resolution pair.                            "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
+  SpeciesOccurrences \
+  "$collectionEUFull" \
+  ./Workshop/species-distribution/queries/DumpEUPair.aql \
+  "{\"@@collectionFinal\": \"EU-Forest_Chelsa\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Load EU-Forest full resolution pair.
+###
+echo ""
+echo "******************************************************************"
+echo "* Load EU-Forest full resolution pair.                            "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/import_collection.sh \
+  SpeciesOccurrences \
+  "$collectionEUFull" \
+  "$collectionEUFull"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -47,70 +121,12 @@ fi
 ###
 echo ""
 echo "******************************************************************"
-echo "* Set Chelsa temperature and precipitation statistics.            "
+echo "* Set EU-Forest pair statistics.                                  "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WriteChelsaPairStats.aql \
-  '{"@@collectionStats": "Stats", "@@collectionPair": "Chelsa_Temperature_Precipitation_FULL", "key": "Chelsa_tas-pr", "indicatorA": "env_climate_tas", "indicatorB": "env_climate_pr"}'
-if [ $? -ne 0 ]
-then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
-fi
-
-###
-# Dump EU-Forest full resolution temperature and precipitation.
-###
-echo ""
-echo "******************************************************************"
-echo "* Dump EU-Forest full resolution temperature and precipitation.   "
-echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
-  SpeciesOccurrences \
-  'EU-Forest_Temperature_Precipitation_FULL' \
-  ./Workshop/species-distribution/queries/EUFullTemperaturePrecipitation.aql \
-  '{"@@collectionStats": "Stats", "@@collectionFinal": "EU-Forest_Chelsa"}'
-if [ $? -ne 0 ]
-then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
-fi
-
-###
-# Load EU-Forest full resolution temperature and precipitation.
-###
-echo ""
-echo "******************************************************************"
-echo "* Load EU-Forest full resolution temperature and precipitation.   "
-echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/import_collection.sh \
-  SpeciesOccurrences \
-  'EU-Forest_Temperature_Precipitation_FULL' \
-  'EU-Forest_Temperature_Precipitation_FULL'
-if [ $? -ne 0 ]
-then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
-fi
-
-###
-# Set Chelsa temperature and precipitation statistics.
-###
-echo ""
-echo "******************************************************************"
-echo "* Set EU-Forest temperature and precipitation statistics.         "
-echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/execute_aql.sh \
-  SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WriteChelsaPairStats.aql \
-  '{"@@collectionStats": "Stats", "@@collectionPair": "EU-Forest_Temperature_Precipitation_FULL", "key": "EU-Forest_tas-pr", "indicatorA": "env_climate_tas", "indicatorB": "env_climate_pr"}'
+  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEUFull\", \"key\": \"$collectionEUFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
 if [ $? -ne 0 ]
 then
 	echo "*************"

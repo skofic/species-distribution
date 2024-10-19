@@ -1,0 +1,89 @@
+
+/**
+ * Set Chelsa indicators pair statistics.
+ *
+ * Get count maximum and add "weight" property ranging from 0 to 1.
+ *
+ * Expects the following bind variables:
+ * @key: The record _key.
+ * @indicatorX: First indicator name in pair.
+ * @indicatorY: second indicator name in pair.
+ * @@collectionPair: Current pair collection.
+ * @@collectionStats: 'Stats' General statistics.
+ */
+LET items = (
+	FOR doc IN @@collectionPair
+		COLLECT WITH COUNT INTO length
+	RETURN length
+)[0]
+
+LET weights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.count),
+						  max = MAX(doc.count)
+	RETURN { min, max }
+)[0]
+
+LET indicatorXcount = LENGTH(
+	FOR doc IN @@collectionPair
+		COLLECT element = doc.properties.@indicatorX
+	RETURN element
+)
+
+LET indicatorXweights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.properties.@indicatorX),
+		                  avg = AVG(doc.properties.@indicatorX),
+						  max = MAX(doc.properties.@indicatorX)
+	RETURN { min, avg, max }
+)[0]
+
+LET indicatorYcount = LENGTH(
+		FOR doc IN @@collectionPair
+			COLLECT element = doc.properties.@indicatorY
+		RETURN element
+)
+
+LET indicatorYweights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.properties.@indicatorY),
+		                  avg = AVG(doc.properties.@indicatorY),
+						  max = MAX(doc.properties.@indicatorY)
+	RETURN { min, avg, max }
+)[0]
+
+UPSERT { _key: @key }
+INSERT {
+	_key: @key,
+	items: {
+		count: items,
+		weights: weights
+	},
+	@indicatorX: {
+	  count: indicatorXcount,
+	  weights: indicatorXweights
+	},
+	@indicatorY: {
+	  count: indicatorYcount,
+	  weights: indicatorYweights
+	}
+}
+REPLACE {
+	items: {
+		count: items,
+		weights: weights
+	},
+	@indicatorX: {
+	  count: indicatorXcount,
+	  weights: indicatorXweights
+	},
+	@indicatorY: {
+	  count: indicatorYcount,
+	  weights: indicatorYweights
+	}
+}
+IN @@collectionStats
+OPTIONS {
+    waitForSync: true,
+    mergeObjects: false
+}

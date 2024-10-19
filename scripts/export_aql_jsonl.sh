@@ -58,8 +58,7 @@ arangoexport \
 	--overwrite true \
 	--progress true \
 	--custom-query-file "$3" \
-	--custom-query-bindvars "$4" \
-	--custom-query-max-runtime 3600
+	--custom-query-bindvars "$4"
 if [ $? -ne 0 ]
 then
 	echo "*************"

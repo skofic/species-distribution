@@ -1,0 +1,24 @@
+/**
+ * Generate Chelsa full resolution pair dump.
+ *
+ * Group all chelsa records by pair.
+ *
+ * Expects the following bind variables:
+ * @indicatorX: X indicator name.
+ * @indicatorY: Y indicator name.
+ * @@collectionChelsa: 'Chelsa' The Chelsa collection.
+ */
+FOR doc IN @@collectionChelsa
+
+    COLLECT valueX = doc.properties["1981-2010"].@indicatorX,
+            valueY = doc.properties["1981-2010"].@indicatorY
+    WITH COUNT INTO items
+
+RETURN {
+    _key: MD5(TO_STRING([valueX, valueY])),
+    count: items,
+    properties: {
+        @indicatorX: valueX,
+        @indicatorY: valueY
+    }
+}

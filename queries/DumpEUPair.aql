@@ -1,0 +1,25 @@
+/**
+ * Generate EU-Forest full resolution pair dataset.
+ *
+ * Group all EU-Forest records by pair.
+ *
+ * Expects the following bind variables:
+ * @indicatorX: X indicator name.
+ * @indicatorY: Y indicator name.
+ * @@collectionFinal: 'EU-Forest_Chelsa' The EU-Forest species occurrences aggregated by Chelsa grid elements.
+ */
+FOR doc IN @@collectionFinal
+
+    COLLECT indicatorX = doc.properties.@indicatorX,
+            indicatorY = doc.properties.@indicatorY
+    INTO items
+
+RETURN {
+    _key: MD5(TO_STRING([indicatorX, indicatorY])),
+    count: LENGTH(items),
+    species_list: UNIQUE(FLATTEN(items[*].doc.properties.species_list)),
+    properties: {
+        @indicatorX: indicatorX,
+        @indicatorY: indicatorY
+    }
+}
