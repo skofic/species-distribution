@@ -4,16 +4,67 @@
  *
  * Get count maximum and add "weight" property ranging from 0 to 1.
  *
+ * @key: The record _key.
+ * @indicatorA: First indicator name in pair.
+ * @indicatorB: second indicator name in pair.
  * Expects the following bind variables:
  * @@collectionPair: Current pair collection.
  * @@collectionStats: 'Stats' General statistics.
  */
-FOR doc IN @@collectionPair
-    COLLECT AGGREGATE min = MIN(doc.count),
-                      max = MAX(doc.count)
+LET items = (
+	FOR doc IN @@collectionPair
+		COLLECT WITH COUNT INTO length
+	RETURN length
+)[0]
+
+LET weights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.count),
+						          max = MAX(doc.count)
+	RETURN { min, max }
+)[0]
+
+LET indicatorAcount = LENGTH(
+	FOR doc IN @@collectionPair
+		COLLECT element = doc.properties.@indicatorA
+	RETURN element
+)
+
+LET indicatorAweights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.properties.@indicatorA),
+		                  avg = AVG(doc.properties.@indicatorA),
+						          max = MAX(doc.properties.@indicatorA)
+	RETURN { min, avg, max }
+)[0]
+
+LET indicatorBcount = LENGTH(
+		FOR doc IN @@collectionPair
+			COLLECT element = doc.properties.@indicatorB
+		RETURN element
+)
+
+LET indicatorBweights = (
+	FOR doc IN @@collectionPair
+		COLLECT AGGREGATE min = MIN(doc.properties.@indicatorB),
+		                  avg = AVG(doc.properties.@indicatorB),
+						          max = MAX(doc.properties.@indicatorB)
+	RETURN { min, avg, max }
+)[0]
 
 INSERT {
-    _key: "Chelsa_Temp_Prec",
-    weight: { min, max }
+	_key: @key,
+	items: {
+		count: items,
+		weights: weights
+	},
+	@indicatorA: {
+	  count: indicatorAcount,
+	  weights: indicatorAweights
+	},
+	@indicatorB: {
+	  count: indicatorBcount,
+	  weights: indicatorBweights
+	}
 } INTO @@collectionStats
   OPTIONS { waitForSync: true }

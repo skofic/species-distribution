@@ -52,7 +52,7 @@ echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
   ./Workshop/species-distribution/queries/WriteChelsaPairStats.aql \
-  '{"@@collectionStats": "Stats", "@@collectionPair": "Chelsa_Temperature_Precipitation_FULL"}'
+  '{"@@collectionStats": "Stats", "@@collectionPair": "Chelsa_Temperature_Precipitation_FULL", "key": "Chelsa_tas-pr", "indicatorA": "env_climate_tas", "indicatorB": "env_climate_pr"}'
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -92,6 +92,25 @@ sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
   'EU-Forest_Temperature_Precipitation_FULL' \
   'EU-Forest_Temperature_Precipitation_FULL'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Set Chelsa temperature and precipitation statistics.
+###
+echo ""
+echo "******************************************************************"
+echo "* Set EU-Forest temperature and precipitation statistics.         "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/WriteChelsaPairStats.aql \
+  '{"@@collectionStats": "Stats", "@@collectionPair": "EU-Forest_Temperature_Precipitation_FULL", "key": "EU-Forest_tas-pr", "indicatorA": "env_climate_tas", "indicatorB": "env_climate_pr"}'
 if [ $? -ne 0 ]
 then
 	echo "*************"
