@@ -177,6 +177,8 @@ async function createCollections()
 		'location',
 		'work',
 		'final',
+		'work_eufgis',
+		'final_eufgis',
 		'stats',
 		'temp_prec_chelsa_full',
 		'temp_prec_eu_full',

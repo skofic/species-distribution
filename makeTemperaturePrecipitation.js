@@ -1,4 +1,8 @@
 /**
+ * OBSOLETE
+ */
+
+/**
  * processEU-Forest
  *
  * This script expects two files in the input directory:
