@@ -93,65 +93,74 @@ async function main()
 	if(K.flags.ProcessEUForest.processFiles) {
 		console.log("\nProcessing files:")
 		for (let i = 0; i < inputFilePath.length; i++) {
+			console.log("\nProcessing file: ", inputFilePath[i])
 			await processFile(i)
+				.then( (results) => {
+					console.log("Processed file: ", inputFilePath[i])
+				})
+				.catch( (error) => {
+					console.log(inputFilePath[i])
+					console.log(error.message)
+					return
+				})
 		}
 	}
-	
-	///
-	// Group species records by location.
-	///
-	if(K.flags.ProcessEUForest.aggregateSpecies) {
-		await aggregateSpecies()
-	}
-	
-	///
-	// Link Chelsa to species occurrences.
-	///
-	if(K.flags.ProcessEUForest.linkChelsa) {
-		await linkChelsa()
-	}
-	
-	///
-	// Remove unlinked records.
-	///
-	if(K.flags.ProcessEUForest.cleanChelsa) {
-		await cleanChelsa()
-	}
-	
-	///
-	// Aggregate Chelsa with species occurrences.
-	///
-	if(K.flags.ProcessEUForest.aggregateChelsa) {
-		await aggregateChelsa()
-	}
-	
-	///
-	// Write EU-Forest Statistics.
-	///
-	if(K.flags.ProcessEUForest.writeEUStats) {
-		await writeEUStats()
-	}
-	
-	///
-	// Write Chelsa Statistics.
-	///
-	if(K.flags.ProcessEUForest.writeChelsaStats) {
-		await writeChelsaStats()
-	}
-	
-	///
-	// Write EU-Forest species list.
-	///
-	if(K.flags.ProcessEUForest.writeEUSpeciesList) {
-		await writeSpeciesStats()
-	}
-	
-	///
-	// Drop work collections.
-	///
-	if(K.flags.ProcessEUForest.dropCollections) {
-		await dropCollections()
-	}
+
+	// ///
+	// // Group species records by location.
+	// ///
+	// if(K.flags.ProcessEUForest.aggregateSpecies) {
+	// 	await aggregateSpecies()
+	// }
+	//
+	// ///
+	// // Link Chelsa to species occurrences.
+	// ///
+	// if(K.flags.ProcessEUForest.linkChelsa) {
+	// 	await linkChelsa()
+	// }
+	//
+	// ///
+	// // Remove unlinked records.
+	// ///
+	// if(K.flags.ProcessEUForest.cleanChelsa) {
+	// 	await cleanChelsa()
+	// }
+	//
+	// ///
+	// // Aggregate Chelsa with species occurrences.
+	// ///
+	// if(K.flags.ProcessEUForest.aggregateChelsa) {
+	// 	await aggregateChelsa()
+	// }
+	//
+	// ///
+	// // Write EU-Forest Statistics.
+	// ///
+	// if(K.flags.ProcessEUForest.writeEUStats) {
+	// 	await writeEUStats()
+	// }
+	//
+	// ///
+	// // Write Chelsa Statistics.
+	// ///
+	// if(K.flags.ProcessEUForest.writeChelsaStats) {
+	// 	await writeChelsaStats()
+	// }
+	//
+	// ///
+	// // Write EU-Forest species list.
+	// ///
+	// if(K.flags.ProcessEUForest.writeEUSpeciesList) {
+	// 	await writeSpeciesStats()
+	// }
+	//
+	// ///
+	// // Drop work collections.
+	// ///
+	// if(K.flags.ProcessEUForest.dropCollections) {
+	// 	await dropCollections()
+	// }
 	
 } // main()
 
@@ -202,7 +211,6 @@ async function createCollections()
 		})
 		.catch( (error) => {
 			console.log(error.message)
-			return
 		})
 	
 	///
@@ -238,6 +246,7 @@ async function createCollections()
 			console.log("Created all indexes.")
 		})
 		.catch( (error) => {
+			console.lo
 			console.log(error.message)
 			return
 		})

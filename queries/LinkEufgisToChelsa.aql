@@ -1,0 +1,28 @@
+/**
+ * Intersect EUFGIS with Chelsa grid.
+ *
+ * Collect all Chelsa grid elements that intersect with Eufgis shapes.
+ *
+ * Expects the following bind variables:
+ * @@collectionWork: 'EUFGIS_Work' Aggregate Chelsa grid with unit shapes and identifiers.
+ * @@collectionShapes: 'Shapes' EUFGIS unit shapes.
+ * @@collectionUnits: 'UnitShapes' EUFGIS units pointing to unit shapes.
+ * @@collectionChelsa: 'Chelsa' The Chelsa collection.
+ */
+FOR shape IN @@collectionShapes
+
+  FOR unit IN @@collectionUnits
+    FILTER unit.geometry_hash == shape._key
+
+  FOR che IN @@collectionChelsa
+    FILTER GEO_INTERSECTS(shape.geometry, che.geometry_bounds)
+
+  COLLECT hash = che._key,
+          unit_id = unit.`gcu_id_unit-id`,
+          unit_number = unit.gcu_id_number
+
+INSERT {
+  geometry_hash: hash,
+  gcu_id_number: unit_number,
+  `gcu_id_unit-id`: unit_id,
+} INTO @@collectionWork

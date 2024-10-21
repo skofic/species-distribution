@@ -1,0 +1,49 @@
+/**
+ * Combine EUFGIS units with matching Chelsa grid elements.
+ *
+ * Aggregate EUFGIS units and shapes by Chelsa grid.
+ *
+ * Expects the following bind variables:
+ * @@collectionWork: 'EUFGIS_Work' Aggregate Chelsa grid with unit shapes and identifiers.
+ * @@collectionChelsa: 'Chelsa' The Chelsa collection.
+ * @@collectionFinal: 'EUFGIS_Chelsa' The EUFGIS unit occurrences aggregated by Chelsa grid elements.
+ */
+FOR work IN @@collectionWork
+  COLLECT hash = work.geometry_hash
+  INTO groups
+
+  LET che = (
+    FOR item IN @@collectionChelsa
+    FILTER item._key == hash
+    RETURN item
+  )[0]
+
+  LET unit_ids = (
+    UNIQUE(
+      groups[*].work['gcu_id_unit-id']
+    )
+  )
+
+  LET unit_nums = (
+    UNIQUE(
+      groups[*].work['gcu_id_number']
+    )
+  )
+
+INSERT {
+  _key: che._key,
+  geometry_bounds: che.geometry_bounds,
+  properties: {
+    gcu_id_number_list: unit_nums,
+    `gcu_id_unit-id_list`: unit_ids,
+    env_climate_pr: che.properties["1981-2010"].env_climate_pr,
+    env_climate_tas: che.properties["1981-2010"].env_climate_tas,
+    env_climate_bio01: che.properties["1981-2010"].env_climate_bio01,
+    env_climate_bio04: che.properties["1981-2010"].env_climate_bio04,
+    env_climate_bio05: che.properties["1981-2010"].env_climate_bio05,
+    env_climate_bio06: che.properties["1981-2010"].env_climate_bio06,
+    env_climate_bio12: che.properties["1981-2010"].env_climate_bio12,
+    env_climate_bio15: che.properties["1981-2010"].env_climate_bio15,
+    env_climate_vpd_mean: che.properties["1981-2010"].env_climate_vpd_mean
+  }
+} INTO @@collectionFinal

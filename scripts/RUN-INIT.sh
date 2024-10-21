@@ -24,11 +24,11 @@ then
 fi
 
 ###
-# Set chelsa grid reference in species occurrences.
+# Set Chelsa grid reference in species occurrences.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Set chelsa grid reference in species occurrences.               "
+echo "* Set Chelsa grid reference in species occurrences.               "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
@@ -81,6 +81,44 @@ then
 fi
 
 ###
+# Set Chelsa grid reference in EUFGIS units.
+###
+echo ""
+echo "******************************************************************"
+echo "* Set Chelsa grid reference in EUFGIS units.                      "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/LinkEufgisToChelsa.aql \
+  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitShapes"}'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Combine EUFGIS units with matching Chelsa grid elements.
+###
+echo ""
+echo "******************************************************************"
+echo "* Aggregate EUFGIS units by Chelsa grid.                          "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/CombineEufgisWithChelsa.aql \
+  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionFinal": "EUFGIS_Chelsa"}'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
 # Write Chelsa selected indicators statistics.
 ###
 echo ""
@@ -110,6 +148,25 @@ sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
   ./Workshop/species-distribution/queries/WriteEUStats.aql \
   '{"@@collectionStats": "Stats", "@@collectionFinal": "EU-Forest_Chelsa"}'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Write EUFGIS selected indicators statistics.
+###
+echo ""
+echo "******************************************************************"
+echo "* Write EUFGIS selected indicators statistics.                    "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/WriteEufgisStats.aql \
+  '{"@@collectionStats": "Stats", "@@collectionFinal": "EUFGIS_Chelsa"}'
 if [ $? -ne 0 ]
 then
 	echo "*************"
