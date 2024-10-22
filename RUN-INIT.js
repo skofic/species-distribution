@@ -85,34 +85,30 @@ async function main()
 	///
 	// Create collections.
 	///
-	if(K.flags.ProcessEUForest.createCollections) {
-		await createCollections()
-			.then( (results) => {
-				console.log("All required collections were created.")
-			})
-			.catch( (error) => {
-				console.log(error.message)
-				return 1
-			})
-	}
+	await createCollections()
+		.then( (results) => {
+			console.log("All required collections were created.")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return 1
+		})
 
 	///
 	// Iterate files.
 	///
-	if(K.flags.ProcessEUForest.processFiles) {
-		console.log("\nProcessing files:")
-		for (let i = 0; i < inputFilePath.length; i++) {
-			console.log("\nProcessing file: ", inputFilePath[i])
-			await processFile(i)
-				.then( (results) => {
-					console.log("Processed file: ", inputFilePath[i])
-				})
-				.catch( (error) => {
-					console.log(inputFilePath[i])
-					console.log(error.message)
-					return
-				})
-		}
+	console.log("\nProcessing files:")
+	for (let i = 0; i < inputFilePath.length; i++) {
+		console.log("\nProcessing file: ", inputFilePath[i])
+		await processFile(i)
+			.then( (results) => {
+				console.log("Processed file: ", inputFilePath[i])
+			})
+			.catch( (error) => {
+				console.log(inputFilePath[i])
+				console.log(error.message)
+				return
+			})
 	}
 
 	// ///
