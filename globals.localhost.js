@@ -13,15 +13,14 @@
 ///
 // Includes.
 ///
-const { credentials } = require("./credentials.localhost.js")
-
+const credentials = require("./credentials.localhost.js")
 
 ///
 // Globals.
 ///
 module.exports = Object.freeze({
 	// Database connection.
-	db: credentials,
+	db: credentials.db,
 	
 	// Collection names.
 	collections: {
@@ -32,7 +31,7 @@ module.exports = Object.freeze({
 		work: 'EU-Forest_Work',
 		work_eufgis: 'EUFGIS_Work',
 		final: 'EU-Forest_Chelsa',
-		final_enfgis: 'EUFGIS_Chelsa',
+		final_eufgis: 'EUFGIS_Chelsa',
 		stats: 'Stats'
 	},
 	
@@ -426,7 +425,7 @@ module.exports = Object.freeze({
 					name: "tas_pr_eufgis_round",
 					species: false,
 					units: true
-				},
+				}
 			]
 		},
 		bio01_bio12: {
@@ -463,7 +462,7 @@ module.exports = Object.freeze({
 					name: "bio01_bio12_eufgis_round",
 					species: false,
 					units: true
-				},
+				}
 			]
 		},
 		tas_bio12: {
@@ -500,7 +499,81 @@ module.exports = Object.freeze({
 					name: "tas_bio12_eufgis_round",
 					species: false,
 					units: true
+				}
+			]
+		},
+		bio06_vpd: {
+			key: "bio06_vpd",
+			X: "env_climate_bio06",
+			Y: "env_climate_vpd_mean",
+			collections: [
+				{
+					name: "bio06_vpd_chelsa_full",
+					species: false,
+					units: false
 				},
+				{
+					name: "bio06_vpd_eu_full",
+					species: true,
+					units: false
+				},
+				{
+					name: "bio06_vpd_eufgis_full",
+					species: false,
+					units: true
+				},
+				{
+					name: "bio06_vpd_chelsa_round",
+					species: false,
+					units: false
+				},
+				{
+					name: "bio06_vpd_eu_round",
+					species: true,
+					units: false
+				},
+				{
+					name: "bio06_vpd_eufgis_round",
+					species: false,
+					units: true
+				}
+			]
+		},
+		bio14_bio15: {
+			key: "bio14_bio15",
+			X: "env_climate_bio14",
+			Y: "env_climate_bio15",
+			collections: [
+				{
+					name: "bio14_bio15_chelsa_full",
+					species: false,
+					units: false
+				},
+				{
+					name: "bio14_bio15_eu_full",
+					species: true,
+					units: false
+				},
+				{
+					name: "bio14_bio15_eufgis_full",
+					species: false,
+					units: true
+				},
+				{
+					name: "bio14_bio15_chelsa_round",
+					species: false,
+					units: false
+				},
+				{
+					name: "bio14_bio15_eu_round",
+					species: true,
+					units: false
+				},
+				{
+					name: "bio14_bio15_eufgis_round",
+					species: false,
+					units: true
+				}
 			]
 		}
 	},
