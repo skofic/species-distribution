@@ -188,6 +188,32 @@ async function createCollections()
 				})
 			)
 		}
+		if(record.units) {
+			indexPromises.push(
+				collection.ensureIndex({
+					"name": "idx_gcu_id_number_list",
+					"type": "persistent",
+					"fields": ["gcu_id_number_list[*]"],
+					"estimates": true,
+					"cacheEnabled": false,
+					"deduplicate": false,
+					"sparse": false,
+					"unique": false
+				})
+			)
+			indexPromises.push(
+				collection.ensureIndex({
+					"name": "idx_gcu_id_unit-id_list",
+					"type": "persistent",
+					"fields": ["gcu_id_unit-id_list[*]"],
+					"estimates": true,
+					"cacheEnabled": false,
+					"deduplicate": false,
+					"sparse": false,
+					"unique": false
+				})
+			)
+		}
 		for (const indicator of ['X', 'Y']) {
 			indexPromises.push(
 				collection.ensureIndex({
