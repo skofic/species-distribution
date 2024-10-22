@@ -43,6 +43,7 @@ INSERT {
     env_climate_bio05: che.properties["1981-2010"].env_climate_bio05,
     env_climate_bio06: che.properties["1981-2010"].env_climate_bio06,
     env_climate_bio12: che.properties["1981-2010"].env_climate_bio12,
+    env_climate_bio14: che.properties["1981-2010"].env_climate_bio14,
     env_climate_bio15: che.properties["1981-2010"].env_climate_bio15,
     env_climate_vpd_mean: che.properties["1981-2010"].env_climate_vpd_mean
   }

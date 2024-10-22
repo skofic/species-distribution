@@ -31,6 +31,10 @@ FOR doc IN `EU-Forest_Chelsa`
               env_climate_bio12_avg = AVG(doc.properties.env_climate_bio12),
               env_climate_bio12_max = MAX(doc.properties.env_climate_bio12),
 
+              env_climate_bio12_min = MIN(doc.properties.env_climate_bio14),
+              env_climate_bio12_avg = AVG(doc.properties.env_climate_bio14),
+              env_climate_bio12_max = MAX(doc.properties.env_climate_bio14),
+
               env_climate_bio15_min = MIN(doc.properties.env_climate_bio15),
               env_climate_bio15_avg = AVG(doc.properties.env_climate_bio15),
               env_climate_bio15_max = MAX(doc.properties.env_climate_bio15),
@@ -74,6 +78,11 @@ FOR doc IN `EU-Forest_Chelsa`
             min: env_climate_bio12_min,
             avg: env_climate_bio12_avg,
             max: env_climate_bio12_max
+        },
+        env_climate_bio14: {
+            min: env_climate_bio14_min,
+            avg: env_climate_bio14_avg,
+            max: env_climate_bio14_max
         },
         env_climate_bio15: {
             min: env_climate_bio15_min,
