@@ -25,6 +25,27 @@ const { Database, aql } = require('arangojs')
 // Import constants.
 ///
 const K = require("./globals.localhost.js")
+const console = require("node:console");
+const {CollectionType} = require("arangojs/collection");
+
+///
+// Handle script arguments.
+///
+if(process.argv.length < 3) {
+	throw new Error("USAGE: <script> <pair key>")
+}
+
+///
+// Check pair information.
+///
+if(!K.pairs.hasOwnProperty(process.argv[2])) {
+	throw new Error(`Unknown pair key: ${process.argv[2]}`)
+}
+
+///
+// Set pair information.
+///
+const pair = K.pairs[process.argv[2]]
 
 ///
 // connect to database.
@@ -55,23 +76,28 @@ async function main()
 	///
 	// Create collections.
 	///
-	if(K.flags.MakeTemperaturePrecipitation.createCollections) {
-		await createCollections()
-	}
+	await createCollections()
+		.then( (results) => {
+			console.log("All required collections were created.")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return 1
+		})
 	
-	///
-	// Build temperature-precipitation pair for Chelsa (FULL).
-	///
-	if(K.flags.MakeTemperaturePrecipitation.makeTempPrecChelsaFull) {
-		await makeTempPrecChelsaFull()
-	}
-	
-	///
-	// Build temperature-precipitation pair for EU-Forest (FULL).
-	///
-	if(K.flags.MakeTemperaturePrecipitation.makeTempPrecEUForestFull) {
-		await makeTempPrecEUForestFull()
-	}
+	// ///
+	// // Build temperature-precipitation pair for Chelsa (FULL).
+	// ///
+	// if(K.flags.MakeTemperaturePrecipitation.makeTempPrecChelsaFull) {
+	// 	await makeTempPrecChelsaFull()
+	// }
+	//
+	// ///
+	// // Build temperature-precipitation pair for EU-Forest (FULL).
+	// ///
+	// if(K.flags.MakeTemperaturePrecipitation.makeTempPrecEUForestFull) {
+	// 	await makeTempPrecEUForestFull()
+	// }
 	
 } // main()
 
@@ -91,65 +117,99 @@ async function createCollections()
 	///
 	// Init collections.
 	///
-	const collectionKeys = [
-		'temp_prec_chelsa_full',
-		'temp_prec_eu_full'
-	]
-	const collections = collectionKeys.map( (key) => {
-		return db.collection(K.collections[key])
+	const collections = pair.collections.map( (collection) => {
+		return db.collection(collection.name)
 	})
 	
 	///
 	// Drop collections.
 	///
-	console.log("Dropping collections")
-	const dropPromises = collections.map(async (collection) => {
-		return await collection.drop()
-	})
-	await Promise.allSettled(dropPromises)
-		.then( (results) => {
-			console.log("Dropped all collections")
-		})
-		.catch( (error) => {
-			console.log(error.message)
-			return
-		})
+	console.log("")
+	console.log("Deleting collections")
+	for (const collection of collections) {
+		console.log("Dropping collection: ", collection.name)
+		await collection.drop()
+			.then( (results) => {
+				console.log("Dropped: ", collection.name)
+			})
+			.catch( (error) => {
+				console.log(error.message)
+			})
+	}
 	
 	///
 	// Create collections.
 	///
+	console.log("")
 	console.log("Creating collections")
-	const createPromises = collections.map(async (collection) => {
-		return await collection.create()
-	})
-	await Promise.allSettled(createPromises)
-		.then( (results) => {
-			console.log("Created all collections.")
-		})
-		.catch( (error) => {
-			console.log(error.message)
-			return
-		})
+	for (const collection of collections) {
+		console.log("Creating collection: ", collection.name)
+		await collection.create({ type: CollectionType.DOCUMENT_COLLECTION })
+			.then( (results) => {
+				console.log("Created: ", collection.name)
+			})
+			.catch( (error) => {
+				console.log(error.message)
+			})
+	}
 	
 	///
 	// Create indexes.
 	///
+	console.log("")
 	console.log("Creating indexes")
 	const indexPromises = []
-	for (const key of collectionKeys) {
-		console.log("Creating indexes for", key)
-		const collection = db.collection(K.collections[key])
-		for (const index of K.indexes[key]) {
-			indexPromises.push(collection.ensureIndex(index))
+	for (const record of pair.collections) {
+		console.log("Creating indexes for: ", record.name)
+		const collection = db.collection(record.name)
+		indexPromises.push(
+			collection.ensureIndex({
+				"name": "idx_count",
+				"type": "persistent",
+				"fields": ["count"],
+				"estimates": true,
+				"cacheEnabled": false,
+				"deduplicate": false,
+				"sparse": false,
+				"unique": false
+			})
+		)
+		if(record.species) {
+			indexPromises.push(
+				collection.ensureIndex({
+					"name": "idx_species",
+					"type": "persistent",
+					"fields": ["species_list[*]"],
+					"estimates": true,
+					"cacheEnabled": false,
+					"deduplicate": false,
+					"sparse": false,
+					"unique": false
+				})
+			)
+		}
+		for (const indicator of ['X', 'Y']) {
+			indexPromises.push(
+				collection.ensureIndex({
+					"name": `idx_${pair.key}_${pair[indicator]}`,
+					"type": "persistent",
+					"fields": [`properties.${pair[indicator]}`],
+					"estimates": true,
+					"cacheEnabled": false,
+					"deduplicate": false,
+					"sparse": false,
+					"unique": false
+				})
+			)
 		}
 	}
 	await Promise.allSettled(indexPromises)
 		.then( (results) => {
-			console.log("Created all indexes.")
+			console.log("Indexes created.")
 		})
 		.catch( (error) => {
 			console.log(error.message)
-			return
+			return 1
 		})
 	
 } // createCollections()
