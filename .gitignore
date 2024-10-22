@@ -1,6 +1,6 @@
 # Credential files.
 data/
-globals.localhost.js
+credentials.localhost.js
 
 # Node modules
 node_modules/
