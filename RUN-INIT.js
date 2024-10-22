@@ -21,6 +21,8 @@ const { Database, aql } = require('arangojs')
 // Import constants.
 ///
 const K = require("./globals.localhost.js")
+const console = require("node:console");
+const {CollectionType} = require("arangojs/collection");
 
 ///
 // connect to database.
@@ -56,7 +58,7 @@ const outputFilePath = [
 ///
 // RUN.
 ///
-main()
+return main()
 
 
 /**
@@ -85,6 +87,13 @@ async function main()
 	///
 	if(K.flags.ProcessEUForest.createCollections) {
 		await createCollections()
+			.then( (results) => {
+				console.log("All required collections were created.")
+			})
+			.catch( (error) => {
+				console.log(error.message)
+				return 1
+			})
 	}
 
 	///
@@ -188,11 +197,7 @@ async function createCollections()
 		'final',
 		'work_eufgis',
 		'final_eufgis',
-		'stats',
-		'temp_prec_chelsa_full',
-		'temp_prec_eu_full',
-		'temp_prec_chelsa_round',
-		'temp_prec_eu_round'
+		'stats'
 	]
 	const collections = collectionKeys.map( (key) => {
 		return db.collection(K.collections[key])
@@ -201,33 +206,34 @@ async function createCollections()
 	///
 	// Drop collections.
 	///
+	console.log("")
 	console.log("Dropping collections")
-	const dropPromises = collections.map(async (collection) => {
-		return await collection.drop()
-	})
-	await Promise.allSettled(dropPromises)
-		.then( (results) => {
-			console.log("Dropped all collections")
-		})
-		.catch( (error) => {
-			console.log(error.message)
-		})
+	for (const collection of collections) {
+		console.log("Dropping collection: ", collection.name)
+		await collection.drop()
+			.then( (results) => {
+				console.log("Dropped: ", collection.name)
+			})
+			.catch( (error) => {
+				console.log(error.message)
+			})
+	}
 	
 	///
 	// Create collections.
 	///
+	console.log("")
 	console.log("Creating collections")
-	const createPromises = collections.map(async (collection) => {
-		return await collection.create()
-	})
-	await Promise.allSettled(createPromises)
-		.then( (results) => {
-			console.log("Created all collections.")
-		})
-		.catch( (error) => {
-			console.log(error.message)
-			return
-		})
+	for (const collection of collections) {
+		console.log("Creating collection: ", collection.name)
+		await collection.create({ type: CollectionType.DOCUMENT_COLLECTION })
+			.then( (results) => {
+				console.log("Created: ", collection.name)
+			})
+			.catch( (error) => {
+				console.log(error.message)
+			})
+	}
 	
 	///
 	// Create indexes.
@@ -246,9 +252,7 @@ async function createCollections()
 			console.log("Created all indexes.")
 		})
 		.catch( (error) => {
-			console.lo
 			console.log(error.message)
-			return
 		})
 	
 } // createCollections()
