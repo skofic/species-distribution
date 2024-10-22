@@ -13,6 +13,7 @@
 ###
 collectionChelsaFull="${1}_chelsa_full"
 collectionEUFull="${1}_eu_full"
+collectionEufgisFull="${1}_eufgis_full"
 
 echo ""
 echo "******************************************************************"
@@ -127,6 +128,64 @@ sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
   ./Workshop/species-distribution/queries/WritePairStats.aql \
   "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEUFull\", \"key\": \"$collectionEUFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Dump EUFGIS pair full resolution.
+###
+echo ""
+echo "******************************************************************"
+echo "* Dump EUFGIS full resolution pair.                               "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
+  SpeciesOccurrences \
+  "$collectionEufgisFull" \
+  ./Workshop/species-distribution/queries/DumpEufgisPair.aql \
+  "{\"@@collectionFinal\": \"EUFGIS_Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Load EUFGIS full resolution pair.
+###
+echo ""
+echo "******************************************************************"
+echo "* Load EUFGIS full resolution pair.                               "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/import_collection.sh \
+  SpeciesOccurrences \
+  "$collectionEufgisFull" \
+  "$collectionEufgisFull"
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
+###
+# Set EUFGIS pair statistics.
+###
+echo ""
+echo "******************************************************************"
+echo "* Set EUFGIS pair statistics.                                     "
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+  SpeciesOccurrences \
+  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEufgisFull\", \"key\": \"$collectionEufgisFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
 if [ $? -ne 0 ]
 then
 	echo "*************"
