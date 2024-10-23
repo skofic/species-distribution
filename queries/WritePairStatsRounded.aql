@@ -2,12 +2,14 @@
 /**
  * Set Chelsa indicators pair statistics.
  *
- * Set statistics for provided rounded indicators
+ * Set statistics and intervals for provided rounded indicators
  *
  * Expects the following bind variables:
  * @key: The record _key.
  * @indicatorX: First indicator name in pair.
- * @indicatorY: second indicator name in pair.
+ * @indicatorY: Second indicator name in pair.
+ * @intervalX: Values rounded interval for indicator X.
+ * @intervalY: Values rounded interval for indicator Y.
  * @@collectionPair: Current pair collection.
  * @@collectionStats: 'Stats' General statistics.
  */
@@ -60,10 +62,12 @@ INSERT {
 	},
 	@indicatorX: {
 	  count: indicatorXcount,
+	  interval: @intervalX,
 	  weights: indicatorXweights
 	},
 	@indicatorY: {
 	  count: indicatorYcount,
+      interval: @intervalY,
 	  weights: indicatorYweights
 	}
 }
@@ -74,10 +78,12 @@ REPLACE {
 	},
 	@indicatorX: {
 	  count: indicatorXcount,
+	  interval: @intervalX,
 	  weights: indicatorXweights
 	},
 	@indicatorY: {
 	  count: indicatorYcount,
+      interval: @intervalY,
 	  weights: indicatorYweights
 	}
 }

@@ -1,11 +1,13 @@
 #!/bin/sh
 
 ###
-# Create indicators pair, full resolution.
+# Create indicators pair, rounded resolution.
 #
 # $1: Pair key.
 # $2: Indicator X.
 # $3: Indicator Y.
+# $4: Interval X.
+# $5: Interval Y.
 ###
 
 ###
@@ -14,25 +16,35 @@
 collectionChelsaFull="${1}_chelsa_full"
 collectionEUFull="${1}_eu_full"
 collectionEufgisFull="${1}_eufgis_full"
+collectionChelsaRound="${1}_chelsa_round"
+collectionEURound="${1}_eu_round"
+collectionEufgisRound="${1}_eufgis_round"
 
 echo ""
 echo "******************************************************************"
 echo "*** Pair: ${2} and ${3}"
-echo "*** in ${collectionChelsaFull}, ${collectionEUFull} and ${collectionEufgisFull}"
+echo "*** Intervals: ${4} and ${5}"
+echo "*** in ${collectionChelsaRound}, ${collectionEURound} and ${collectionEufgisRound}"
 echo "******************************************************************"
 
 ###
-# Dump Chelsa pair full resolution.
+# Dump Chelsa pair rounded resolution.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Dump Chelsa full resolution pair.                               "
+echo "* Dump Chelsa rounded resolution pair.                            "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
   SpeciesOccurrences \
-  "$collectionChelsaFull" \
-  ./Workshop/species-distribution/queries/DumpChelsaPair.aql \
-  "{\"@@collectionChelsa\": \"Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+  "$collectionChelsaRound" \
+  ./Workshop/species-distribution/queries/DumpChelsaRoundedPair.aql \
+  "{
+      \"@@collectionFULL\": \"${collectionChelsaFull}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -42,16 +54,16 @@ then
 fi
 
 ###
-# Load Chelsa full resolution pair.
+# Load Chelsa rounded resolution pair.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Load Chelsa full resolution pair.                               "
+echo "* Load Chelsa rounded resolution pair.                            "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
-  "$collectionChelsaFull" \
-  "$collectionChelsaFull"
+  "$collectionChelsaRound" \
+  "$collectionChelsaRound"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -69,8 +81,16 @@ echo "* Set Chelsa pair statistics.                                     "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
-  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"${collectionChelsaFull}\", \"key\": \"${collectionChelsaFull}\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+  ./Workshop/species-distribution/queries/WritePairStatsRounded.aql \
+  "{
+      \"@@collectionStats\": \"Stats\",
+      \"@@collectionPair\": \"${collectionChelsaRound}\",
+      \"key\": \"${collectionChelsaRound}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -80,17 +100,23 @@ then
 fi
 
 ###
-# Dump EU-Forest full resolution pair.
+# Dump EU-Forest pair rounded resolution.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Dump EU-Forest full resolution pair.                            "
+echo "* Dump EU-Forest rounded resolution pair.                         "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
   SpeciesOccurrences \
-  "$collectionEUFull" \
-  ./Workshop/species-distribution/queries/DumpEUPair.aql \
-  "{\"@@collectionFinal\": \"EU-Forest_Chelsa\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
+  "$collectionEURound" \
+  ./Workshop/species-distribution/queries/DumpEURoundedPair.aql \
+  "{
+      \"@@collectionFULL\": \"${collectionEUFull}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -100,16 +126,16 @@ then
 fi
 
 ###
-# Load EU-Forest full resolution pair.
+# Load EU-Forest rounded resolution pair.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Load EU-Forest full resolution pair.                            "
+echo "* Load EU-Forest rounded resolution pair.                         "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
-  "$collectionEUFull" \
-  "$collectionEUFull"
+  "$collectionEURound" \
+  "$collectionEURound"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -119,7 +145,7 @@ then
 fi
 
 ###
-# Set Chelsa temperature and precipitation statistics.
+# Set EU-Forest pair statistics.
 ###
 echo ""
 echo "******************************************************************"
@@ -127,8 +153,16 @@ echo "* Set EU-Forest pair statistics.                                  "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
-  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEUFull\", \"key\": \"$collectionEUFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
+  ./Workshop/species-distribution/queries/WritePairStatsRounded.aql \
+  "{
+      \"@@collectionStats\": \"Stats\",
+      \"@@collectionPair\": \"${collectionEURound}\",
+      \"key\": \"${collectionEURound}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -138,17 +172,23 @@ then
 fi
 
 ###
-# Dump EUFGIS pair full resolution.
+# Dump EUFGIS pair rounded resolution.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Dump EUFGIS full resolution pair.                               "
+echo "* Dump EUFGIS rounded resolution pair.                            "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
   SpeciesOccurrences \
-  "$collectionEufgisFull" \
-  ./Workshop/species-distribution/queries/DumpEufgisPair.aql \
-  "{\"@@collectionFinal\": \"EUFGIS_Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+  "$collectionEufgisRound" \
+  ./Workshop/species-distribution/queries/DumpEufgisRoundedPair.aql \
+  "{
+      \"@@collectionFULL\": \"${collectionEufgisFull}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -158,16 +198,16 @@ then
 fi
 
 ###
-# Load EUFGIS full resolution pair.
+# Load EUFGIS rounded resolution pair.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Load EUFGIS full resolution pair.                               "
+echo "* Load EUFGIS rounded resolution pair.                            "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
-  "$collectionEufgisFull" \
-  "$collectionEufgisFull"
+  "$collectionEufgisRound" \
+  "$collectionEufgisRound"
 if [ $? -ne 0 ]
 then
 	echo "*************"
@@ -185,8 +225,16 @@ echo "* Set EUFGIS pair statistics.                                     "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
-  "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEufgisFull\", \"key\": \"$collectionEufgisFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
+  ./Workshop/species-distribution/queries/WritePairStatsRounded.aql \
+  "{
+      \"@@collectionStats\": \"Stats\",
+      \"@@collectionPair\": \"${collectionEufgisRound}\",
+      \"key\": \"${collectionEufgisRound}\",
+      \"indicatorX\": \"${2}\",
+      \"indicatorY\": \"${3}\",
+      \"intervalX\": \"${4}\",
+      \"intervalY\": \"${5}\"
+  }"
 if [ $? -ne 0 ]
 then
 	echo "*************"

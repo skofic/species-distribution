@@ -1,0 +1,38 @@
+/**
+ * Load rounded pair into collection.
+ *
+ * Multiply and divide each indicator by the provided coefficient and save result in rounded collection.
+ *
+ * Expects the following bind variables:
+ * @indicator: Indicator name.
+ * @intervals: Array of intervals.
+ * @collectionFULL: Stats collection record _key, usually @@collectionFULL.
+ * @@collectionFULL: Collection containing full selection.
+ * @@collectionStats: Statistics collection.
+ */
+LET length = (
+  FOR doc IN @@collectionStats
+    FILTER doc._key == @collectionFULL
+  RETURN doc.@indicator.count
+)[0]
+
+LET result = (
+  FOR interval IN @intervals
+
+    LET count = LENGTH(
+      FOR doc IN @@collectionFULL
+        COLLECT value = ROUND(doc.properties.@indicator / interval) * interval
+      RETURN value
+    )
+
+  RETURN {
+    interval,
+    @indicator: count
+  }
+)
+
+RETURN {
+  variable: @indicator,
+  elements: length,
+  result
+}

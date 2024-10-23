@@ -1,0 +1,27 @@
+/**
+ * Load rounded pair into collection, species version.
+ *
+ * Multiply and divide each indicator by the provided coefficient and save result in rounded collection.
+ *
+ * Expects the following bind variables:
+ * @indicatorX: X indicator name.
+ * @indicatorY: Y indicator name.
+ * @intervalX: Values interval for indicator X.
+ * @intervalY: Values interval for indicator Y.
+ * @@collectionFULL: Collection containing full selection.
+ */
+FOR doc IN @@collectionFULL
+
+  COLLECT valueX = ROUND(doc.properties.@indicatorX / @intervalX) * @intervalX,
+          valueY = ROUND(doc.properties.@indicatorY / @intervalY) * @intervalY
+  INTO items
+
+RETURN {
+    _key: MD5(TO_STRING([valueX, valueY])),
+    count: LENGTH(items),
+    species_list: UNIQUE(FLATTEN(items[*].doc.species_list)),
+    properties: {
+        @indicatorX: valueX,
+        @indicatorY: valueY
+    }
+}
