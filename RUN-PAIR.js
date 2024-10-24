@@ -5,12 +5,7 @@
 /**
  * processEU-Forest
  *
- * This script expects two files in the input directory:
- *
- * - `EU-Forest_Genus.csv`: The coordinates of the Genus occurrences.
- * - `EU-Forest_Species.csv`: The coordinates of the Species occurrences.
- *
- * The function will load them in the respective collections.
+ * This script will create all the required collections
  */
 
 ///
@@ -65,11 +60,9 @@ main()
 /**
  * main
  *
- * The main function will perform the following tasks:
+ * This function will perform the following tasks:
  *
- * - Create all working collections.
- * - Create temperature-Precipitation pair for Chelsa (FULL).
- * - Remove temporary collections.
+ * - Create all pair collections (full and round).
  */
 async function main()
 {
