@@ -1,13 +1,9 @@
 'use strict'
 
 /**
- * globals.example.js
+ * globals.localhost.js
  *
  * This file contains the global variables used in the project.
- * This is an example file, so the actual references are just
- * for example purposes. Copy this file and name the copy, for
- * instance, globals.localhost.js for accessing the localhost
- * database.
  */
 
 ///
