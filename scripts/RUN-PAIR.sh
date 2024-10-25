@@ -69,7 +69,7 @@ echo "* Set Chelsa pair statistics.                                     "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  ./Workshop/species-distribution/queries/WritePairStatsFull.aql \
   "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"${collectionChelsaFull}\", \"key\": \"${collectionChelsaFull}\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
 if [ $? -ne 0 ]
 then
@@ -127,7 +127,7 @@ echo "* Set EU-Forest pair statistics.                                  "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  ./Workshop/species-distribution/queries/WritePairStatsFull.aql \
   "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEUFull\", \"key\": \"$collectionEUFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
 if [ $? -ne 0 ]
 then
@@ -185,7 +185,7 @@ echo "* Set EUFGIS pair statistics.                                     "
 echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/WritePairStats.aql \
+  ./Workshop/species-distribution/queries/WritePairStatsFull.aql \
   "{\"@@collectionStats\": \"Stats\", \"@@collectionPair\": \"$collectionEufgisFull\", \"key\": \"$collectionEufgisFull\", \"indicatorX\": \"$2\", \"indicatorY\": \"$3\"}"
 if [ $? -ne 0 ]
 then
