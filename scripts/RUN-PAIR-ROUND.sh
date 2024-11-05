@@ -8,7 +8,19 @@
 # $3: Indicator Y.
 # $4: Interval X.
 # $5: Interval Y.
+# $6: Collection name postfix.
+#
+# To ignore an interval, provide 0.
 ###
+
+###
+# Check parameters.
+###
+if [ "$#" -ne 6 ]
+then
+    echo "Usage: <script>>.sh <pair key> <variable X> <variable Y> <interval X> <interval Y> <collection name postfix>"
+	exit 1
+fi
 
 ###
 # GLOBALS
@@ -16,9 +28,9 @@
 collectionChelsaFull="${1}_chelsa_full"
 collectionEUFull="${1}_eu_full"
 collectionEufgisFull="${1}_eufgis_full"
-collectionChelsaRound="${1}_chelsa_round"
-collectionEURound="${1}_eu_round"
-collectionEufgisRound="${1}_eufgis_round"
+collectionChelsaRound="${1}_chelsa_${6}"
+collectionEURound="${1}_eu_${6}"
+collectionEufgisRound="${1}_eufgis_${6}"
 
 echo ""
 echo "******************************************************************"
@@ -47,10 +59,10 @@ sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
   }"
 if [ $? -ne 0 ]
 then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
+  echo "*************"
+  echo "*** ERROR ***"
+  echo "*************"
+  exit 1
 fi
 
 ###

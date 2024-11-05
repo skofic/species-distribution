@@ -56,7 +56,7 @@ INSERT {
 	_key: @key,
 	items: {
 		records: items,
-		maxElements: elements
+		maxWeight: elements
 	},
 	@indicatorX: {
 	  count: indicatorXcount,

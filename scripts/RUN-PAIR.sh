@@ -21,44 +21,44 @@ echo "*** Pair: ${2} and ${3}"
 echo "*** in ${collectionChelsaFull}, ${collectionEUFull} and ${collectionEufgisFull}"
 echo "******************************************************************"
 
-###
-# Dump Chelsa pair full resolution.
-###
-echo ""
-echo "******************************************************************"
-echo "* Dump Chelsa full resolution pair.                               "
-echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
-  SpeciesOccurrences \
-  "$collectionChelsaFull" \
-  ./Workshop/species-distribution/queries/DumpChelsaPair.aql \
-  "{\"@@collectionChelsa\": \"Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
-if [ $? -ne 0 ]
-then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
-fi
-
-###
-# Load Chelsa full resolution pair.
-###
-echo ""
-echo "******************************************************************"
-echo "* Load Chelsa full resolution pair.                               "
-echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/import_collection.sh \
-  SpeciesOccurrences \
-  "$collectionChelsaFull" \
-  "$collectionChelsaFull"
-if [ $? -ne 0 ]
-then
-	echo "*************"
-	echo "*** ERROR ***"
-	echo "*************"
-	exit 1
-fi
+####
+## Dump Chelsa pair full resolution.
+####
+#echo ""
+#echo "******************************************************************"
+#echo "* Dump Chelsa full resolution pair.                               "
+#echo "******************************************************************"
+#sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
+#  SpeciesOccurrences \
+#  "$collectionChelsaFull" \
+#  ./Workshop/species-distribution/queries/DumpChelsaPair.aql \
+#  "{\"@@collectionChelsa\": \"Chelsa\", \"indicatorX\": \"${2}\", \"indicatorY\": \"${3}\"}"
+#if [ $? -ne 0 ]
+#then
+#	echo "*************"
+#	echo "*** ERROR ***"
+#	echo "*************"
+#	exit 1
+#fi
+#
+####
+## Load Chelsa full resolution pair.
+####
+#echo ""
+#echo "******************************************************************"
+#echo "* Load Chelsa full resolution pair.                               "
+#echo "******************************************************************"
+#sh ./Workshop/species-distribution/scripts/import_collection.sh \
+#  SpeciesOccurrences \
+#  "$collectionChelsaFull" \
+#  "$collectionChelsaFull"
+#if [ $? -ne 0 ]
+#then
+#	echo "*************"
+#	echo "*** ERROR ***"
+#	echo "*************"
+#	exit 1
+#fi
 
 ###
 # Set Chelsa pair statistics.

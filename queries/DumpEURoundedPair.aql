@@ -12,8 +12,8 @@
  */
 FOR doc IN @@collectionFULL
 
-  COLLECT valueX = ROUND(doc.properties.@indicatorX / @intervalX) * @intervalX,
-          valueY = ROUND(doc.properties.@indicatorY / @intervalY) * @intervalY
+  COLLECT valueX = @intervalX == 0 ? doc.properties.@indicatorX : ROUND(doc.properties.@indicatorX / @intervalX) * @intervalX,
+          valueY = @intervalY == 0 ? doc.properties.@indicatorY : ROUND(doc.properties.@indicatorY / @intervalY) * @intervalY
   INTO items
 
 RETURN {
