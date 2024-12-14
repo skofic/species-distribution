@@ -1,0 +1,72 @@
+/**
+ * Aggregate Chelsa EU-Forest and EUFGIS.
+ *
+ * This query will return the aggregate of Chelsa, EU-Forest and EUFGIS.
+ * Each record is uniquely identified by the two indicators values pair.
+ * Each record features the two indicator values and a "properties" object,
+ * the object will contain the count of the Chelsa elements, the count
+ * and list of species for the EU-Forest record and the count and list
+ * of unit numbers. The last two items will be there if found.
+ *
+ * The result is a collection containing all indicator pair combinations
+ * and the Chelsa, EU-Foresty and EUFGIS elements that share them.
+ *
+ * @@collection_chelsa: The collection containing chelsa data.
+ * @@collection_eu:     The collection containing EU-Forest data.
+ * @@collection_eufgis: The collection containing EUFGIS data.
+ *
+ * @indicator_1: First indicator name.
+ * @indicator_2: Second indicator name.
+ */
+FOR che IN @@collection_chelsa
+
+	LET eu = (
+		FOR doc IN @@collection_eu
+			FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
+			FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
+		RETURN doc
+	)[0]
+
+	LET eufgis = (
+		FOR doc IN @@collection_eufgis
+			FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
+			FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
+		RETURN doc
+	)[0]
+
+	LET eu_properties = (eu == null)
+										? {}
+										: {
+											eu: {
+												count: eu.count,
+												species_list: eu.species_list
+											}
+										  }
+
+	LET eufgis_properties = (eufgis == null)
+										? {}
+										: {
+											eufgis: {
+												count: eufgis.count,
+												gcu_id_number_list: eufgis.gcu_id_number_list
+											}
+										  }
+
+RETURN {
+
+		_key: MD5(
+				TO_STRING([
+						che.properties.@indicator_1,
+						che.properties.@indicator_2
+				])
+		),
+
+	@indicator_1: che.properties.@indicator_1,
+	@indicator_2: che.properties.@indicator_2,
+
+	properties: MERGE(
+		{ chelsa: { count: che.count } },
+		eu_properties,
+		eufgis_properties
+	)
+}
