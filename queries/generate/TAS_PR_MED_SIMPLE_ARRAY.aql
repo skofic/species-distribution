@@ -1,0 +1,12 @@
+
+/**
+ * Mean daily air temperature / Monthly precipitation amount
+ * Medium resolution
+ * Return values only.
+ * JSON format.
+ */
+FOR doc IN tas_pr_chelsa_med
+RETURN {
+    temp: doc.properties.env_climate_tas,
+    prec: doc.properties.env_climate_pr
+}
