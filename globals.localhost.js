@@ -157,16 +157,6 @@ module.exports = Object.freeze({
 				"deduplicate": false,
 				"sparse": false,
 				"unique": false
-			},
-			{
-				"name": "idx_gcu_id_unit-id",
-				"type": "persistent",
-				"fields": "gcu_id_unit-id",
-				"estimates": true,
-				"cacheEnabled": false,
-				"deduplicate": false,
-				"sparse": false,
-				"unique": false
 			}
 		],
 		final: [

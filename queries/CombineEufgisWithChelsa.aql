@@ -18,12 +18,6 @@ FOR work IN @@collectionWork
     RETURN item
   )[0]
 
-  LET unit_ids = (
-    UNIQUE(
-      groups[*].work['gcu_id_unit-id']
-    )
-  )
-
   LET unit_nums = (
     UNIQUE(
       groups[*].work['gcu_id_number']
@@ -35,7 +29,6 @@ INSERT {
   geometry_bounds: che.geometry_bounds,
   properties: {
     gcu_id_number_list: unit_nums,
-    `gcu_id_unit-id_list`: unit_ids,
     env_climate_pr: che.properties["1981-2010"].env_climate_pr,
     env_climate_tas: che.properties["1981-2010"].env_climate_tas,
     env_climate_bio01: che.properties["1981-2010"].env_climate_bio01,
