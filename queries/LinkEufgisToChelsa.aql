@@ -6,13 +6,13 @@
  * Expects the following bind variables:
  * @@collectionWork: 'EUFGIS_Work' Aggregate Chelsa grid with unit shapes and identifiers.
  * @@collectionShapes: 'Shapes' EUFGIS unit shapes.
- * @@collectionUnits: 'UnitShapes' EUFGIS units pointing to unit shapes.
+ * @@collectionUnits: 'UnitPolygons' EUFGIS units pointing to unit shapes.
  * @@collectionChelsa: 'Chelsa' The Chelsa collection.
  */
 FOR shape IN @@collectionShapes
 
   FOR unit IN @@collectionUnits
-    FILTER unit.geometry_hash == shape._key
+    FILTER unit._key == shape.gcu_id_number
 
   FOR che IN @@collectionChelsa
     FILTER GEO_INTERSECTS(shape.geometry, che.geometry_bounds)

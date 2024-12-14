@@ -90,7 +90,7 @@ echo "******************************************************************"
 sh ./Workshop/species-distribution/scripts/execute_aql.sh \
   SpeciesOccurrences \
   ./Workshop/species-distribution/queries/LinkEufgisToChelsa.aql \
-  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitShapes"}'
+  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitPolygons"}'
 if [ $? -ne 0 ]
 then
 	echo "*************"

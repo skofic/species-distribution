@@ -25,11 +25,11 @@ In order to create the collections we need three main sets of data:
 - [EU-Forest](https://figshare.com/collections/A_high-resolution_pan-European_tree_occurrence_dataset/3288407). The two datasets we use are the tree occurrences at [genus](https://figshare.com/articles/dataset/Tree_occurrences_at_genus_level/3497888?backTo=/collections/A_high-resolution_pan-European_tree_occurrence_dataset/3288407) level and the tree occurrences at the [species](https://figshare.com/articles/dataset/Tree_occurrences_at_species_level/3497885?backTo=/collections/A_high-resolution_pan-European_tree_occurrence_dataset/3288407) level. In the `RUN-INIT.js` script we process these files, so you will need to correct the location of these files.
 - EUFGIS. This set of collections cover the following data (some information on the data is available [here](https://github.com/skofic/environmental-services)):
   - *Shapes*. The collection containing the individual conservation unit GeoJSON shapes.
-  - *UnitShapes*: A collection linking shapes to conservation unit numbers and IDs.
+  - *UnitPolygons*: A collection linking shapes to conservation unit numbers.
 
 ## Workflow
 
-The first step is to get [Chelsa](https://chelsa-climate.org), the two [EU-Forest](https://figshare.com/collections/A_high-resolution_pan-European_tree_occurrence_dataset/3288407) files and the EUFGIS conservation units data. The first and last of these will be in the form of ArangoDB collections named: `Chelsa`, `Shapes` and `UnitShapes`.
+The first step is to get [Chelsa](https://chelsa-climate.org), the two [EU-Forest](https://figshare.com/collections/A_high-resolution_pan-European_tree_occurrence_dataset/3288407) files and the EUFGIS conservation units data. The first and last of these will be in the form of ArangoDB collections named: `Chelsa`, `Shapes` and `UnitPolygons`.
 
 The second step consists in creating the required collections to link the EU-Forest and conservation unit data to the Chelsa climate grid. You run the `RUN-INIT.js` script that will perform the following operations:
 
