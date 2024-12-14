@@ -1,3 +1,4 @@
+
 /**
  * Aggregate Chelsa EU-Forest and EUFGIS.
  *
@@ -20,53 +21,53 @@
  */
 FOR che IN @@collection_chelsa
 
-	LET eu = (
-		FOR doc IN @@collection_eu
-			FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
-			FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
-		RETURN doc
-	)[0]
+  LET eu = (
+    FOR doc IN @@collection_eu
+      FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
+      FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
+    RETURN doc
+  )[0]
 
-	LET eufgis = (
-		FOR doc IN @@collection_eufgis
-			FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
-			FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
-		RETURN doc
-	)[0]
+  LET eufgis = (
+    FOR doc IN @@collection_eufgis
+      FILTER doc.properties.@indicator_1 == che.properties.@indicator_1
+      FILTER doc.properties.@indicator_2 == che.properties.@indicator_2
+    RETURN doc
+  )[0]
 
-	LET eu_properties = (eu == null)
-										? {}
-										: {
-											eu: {
-												count: eu.count,
-												species_list: eu.species_list
-											}
-										  }
+  LET eu_properties = (eu == null)
+                    ? {}
+                    : {
+                      eu: {
+                        count: eu.count,
+                        species_list: eu.species_list
+                      }
+                      }
 
-	LET eufgis_properties = (eufgis == null)
-										? {}
-										: {
-											eufgis: {
-												count: eufgis.count,
-												gcu_id_number_list: eufgis.gcu_id_number_list
-											}
-										  }
+  LET eufgis_properties = (eufgis == null)
+                    ? {}
+                    : {
+                      eufgis: {
+                        count: eufgis.count,
+                        gcu_id_number_list: eufgis.gcu_id_number_list
+                      }
+                      }
 
 RETURN {
 
-		_key: MD5(
-				TO_STRING([
-						che.properties.@indicator_1,
-						che.properties.@indicator_2
-				])
-		),
+    _key: MD5(
+        TO_STRING([
+            che.properties.@indicator_1,
+            che.properties.@indicator_2
+        ])
+    ),
 
-	@indicator_1: che.properties.@indicator_1,
-	@indicator_2: che.properties.@indicator_2,
+  @indicator_1: che.properties.@indicator_1,
+  @indicator_2: che.properties.@indicator_2,
 
-	properties: MERGE(
-		{ chelsa: { count: che.count } },
-		eu_properties,
-		eufgis_properties
-	)
+  properties: MERGE(
+    { chelsa: { count: che.count } },
+    eu_properties,
+    eufgis_properties
+  )
 }
