@@ -54,8 +54,8 @@ sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
       \"@@collectionFULL\": \"${collectionChelsaFull}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
@@ -100,8 +100,8 @@ sh ./Workshop/species-distribution/scripts/execute_aql.sh \
       \"key\": \"${collectionChelsaRound}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
@@ -126,8 +126,8 @@ sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
       \"@@collectionFULL\": \"${collectionEUFull}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
@@ -172,8 +172,8 @@ sh ./Workshop/species-distribution/scripts/execute_aql.sh \
       \"key\": \"${collectionEURound}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
@@ -198,8 +198,8 @@ sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
       \"@@collectionFULL\": \"${collectionEufgisFull}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
@@ -244,8 +244,8 @@ sh ./Workshop/species-distribution/scripts/execute_aql.sh \
       \"key\": \"${collectionEufgisRound}\",
       \"indicatorX\": \"${2}\",
       \"indicatorY\": \"${3}\",
-      \"intervalX\": \"${4}\",
-      \"intervalY\": \"${5}\"
+      \"intervalX\": ${4},
+      \"intervalY\": ${5}
   }"
 if [ $? -ne 0 ]
 then
