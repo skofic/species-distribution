@@ -80,17 +80,62 @@ then
 	exit 1
 fi
 
+##
+# Following block inserts records into a collection,
+# The following two blocks do the same, except that
+# they dum to file and load from file.
+##
+
+####
+## Insert Chelsa grid reference in EUFGIS units.
+####
+#echo ""
+#echo "******************************************************************"
+#echo "* Insert Chelsa grid reference in EUFGIS units.                      "
+#echo "******************************************************************"
+#sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+#  SpeciesOccurrences \
+#  ./Workshop/species-distribution/queries/LinkEufgisToChelsa.aql \
+#  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitPolygons"}'
+#if [ $? -ne 0 ]
+#then
+#	echo "*************"
+#	echo "*** ERROR ***"
+#	echo "*************"
+#	exit 1
+#fi
+
+###
+# Dump Chelsa grid reference in EUFGIS units.
+###
+echo ""
+echo "******************************************************************"
+echo "* Dump Chelsa grid reference in EUFGIS units."
+echo "******************************************************************"
+sh ./Workshop/species-distribution/scripts/export_aql_jsonl.sh \
+  SpeciesOccurrences \
+  EUFGIS_Work \
+  ./Workshop/species-distribution/queries/DumpLinkEufgisToChelsa.aql \
+  '{"@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitPolygons"}'
+if [ $? -ne 0 ]
+then
+	echo "*************"
+	echo "*** ERROR ***"
+	echo "*************"
+	exit 1
+fi
+
 ###
 # Set Chelsa grid reference in EUFGIS units.
 ###
 echo ""
 echo "******************************************************************"
-echo "* Set Chelsa grid reference in EUFGIS units.                      "
+echo "* Load Chelsa grid reference in EUFGIS units."
 echo "******************************************************************"
-sh ./Workshop/species-distribution/scripts/execute_aql.sh \
+sh ./Workshop/species-distribution/scripts/import_collection.sh \
   SpeciesOccurrences \
-  ./Workshop/species-distribution/queries/LinkEufgisToChelsa.aql \
-  '{"@@collectionWork": "EUFGIS_Work", "@@collectionChelsa": "Chelsa", "@@collectionShapes": "Shapes", "@@collectionUnits": "UnitPolygons"}'
+  EUFGIS_Work \
+  EUFGIS_Work
 if [ $? -ne 0 ]
 then
 	echo "*************"

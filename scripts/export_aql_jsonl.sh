@@ -57,6 +57,7 @@ arangoexport \
 	--compress-output true \
 	--overwrite true \
 	--progress true \
+	--documents-per-batch 100 \
 	--custom-query-file "$3" \
 	--custom-query-bindvars "$4"
 if [ $? -ne 0 ]

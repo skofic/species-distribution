@@ -1,0 +1,63 @@
+
+/**
+ * Merge unit shape in UnitPolygons.
+ *
+ * We assume the "test" collection contains the unit
+ * feature collections including the unit multi polygons.
+ * The result will be the UnitPolygons record including
+ * the unit multi polygons.
+ */
+FOR doc IN UnitPolygons
+
+  LET shape = (
+    FOR sha IN test
+      FILTER sha.properties.unit == doc._key
+    RETURN sha.geometry
+  )[0]
+
+  LET bbox = (
+    FOR box IN units_bbox
+      FILTER box.properties.unit == doc._key
+    RETURN box
+  )[0]
+
+RETURN {
+  _key: doc._key,
+  gcu_id_number: doc.gcu_id_number,
+  geometry_hash_list: doc.geometry_hash_list,
+  properties: {
+    chr_AvElevation: doc.properties.chr_AvElevation,
+    chr_MinElevation: doc.properties.chr_MinElevation,
+    chr_MaxElevation: doc.properties.chr_MaxElevation,
+    chr_StdElevation: doc.properties.chr_StdElevation,
+    chr_AvSlope: doc.properties.chr_AvSlope,
+    chr_AvAspect: doc.properties.chr_AvAspect,
+    geo_shape_area: doc.properties.geo_shape_area,
+    geo_box_width: bbox.properties.width,
+    geo_box_height: bbox.properties.height,
+    geo_box_area: bbox.properties.area,
+    geo_box_perimeter: bbox.properties.perimeter
+  },
+  std_terms: [
+    "geo_shape_area",
+    "chr_AvAspect",
+    "chr_AvSlope",
+    "chr_AvElevation",
+    "chr_MinElevation",
+    "chr_MaxElevation",
+    "chr_StdElevation",
+    "geo_box_width",
+    "geo_box_height",
+    "geo_box_area",
+    "geo_box_perimeter"
+  ],
+  std_dataset_ids: doc.std_dataset_ids,
+  geometry: {
+    type: shape.type,
+    coordinates: shape.coordinates
+  },
+  geometry_bounds: {
+    type: bbox.geometry.type,
+    coordinates: bbox.geometry.coordinates
+  }
+}

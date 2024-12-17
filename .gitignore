@@ -8,6 +8,9 @@ credentials.localhost.js
 # Directories.
 data/
 
+# Log files
+*.out
+
 ###
 # NODE.JS
 ###

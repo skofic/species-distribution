@@ -82,17 +82,17 @@ return main()
  */
 async function main()
 {
-	// ///
-	// // Create collections.
-	// ///
-	// await createCollections()
-	// 	.then( (results) => {
-	// 		console.log("All required collections were created.")
-	// 	})
-	// 	.catch( (error) => {
-	// 		console.log(error.message)
-	// 		return 1
-	// 	})
+	///
+	// Create collections.
+	///
+	await createCollections()
+		.then( (results) => {
+			console.log("All required collections were created.")
+		})
+		.catch( (error) => {
+			console.log(error.message)
+			return 1
+		})
 
 	///
 	// Iterate files.
