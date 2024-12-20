@@ -50,7 +50,7 @@ for resolution in $4; do
     SpeciesOccurrences \
     "${1}_${resolution}" \
     ./Workshop/species-distribution/queries/AGGREGATE.aql \
-    "{\"@@collection_chelsa\": \"${name_chelsa}_${resolution}\", \"@@collection_eu\": \"${name_eu}_${resolution}\", \"@@collection_eufgis\": \"${name_eufgis}_${resolution}\", \"indicator_1\": \"${2}\", \"indicator_2\": \"${3}\"}"
+    "{\"@@collection_chelsa\": \"${name_chelsa}_${resolution}\", \"@@collection_eu\": \"${name_eu}_${resolution}\", \"@@collection_eufgis\": \"${name_eufgis}_${resolution}\", \"indicator_1\": \"${2}\", \"indicator_2\": \"${3}\", \"pair\": \"${1}\", \"resolution\": \"${resolution}\"}"
   if [ $? -ne 0 ]
   then
     echo "*************"

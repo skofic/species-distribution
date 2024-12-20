@@ -18,7 +18,27 @@
  *
  * @indicator_1: First indicator name.
  * @indicator_2: Second indicator name.
+ * @pair: Pair prefix.
+ * @resolution: full, med or low.
  */
+LET weight_chelsa = (
+    FOR doc IN Stats
+        FILTER doc._key == CONCAT_SEPARATOR('_', @pair, "chelsa", @resolution)
+    RETURN doc
+)[0].items.maxElements
+
+LET weight_eu = (
+    FOR doc IN Stats
+        FILTER doc._key == CONCAT_SEPARATOR('_', @pair, "eu", @resolution)
+    RETURN doc
+)[0].items.maxElements
+
+LET weight_eufgis = (
+    FOR doc IN Stats
+        FILTER doc._key == CONCAT_SEPARATOR('_', @pair, "eufgis", @resolution)
+    RETURN doc
+)[0].items.maxElements
+
 FOR che IN @@collection_chelsa
 
   LET eu = (
@@ -39,7 +59,7 @@ FOR che IN @@collection_chelsa
                     ? {}
                     : {
                       eu: {
-                        count: eu.count,
+                        count: eu.count / weight_eu,
                         species_list: eu.species_list
                       }
                       }
@@ -48,7 +68,7 @@ FOR che IN @@collection_chelsa
                     ? {}
                     : {
                       eufgis: {
-                        count: eufgis.count,
+                        count: eufgis.count / weight_eufgis,
                         gcu_id_number_list: eufgis.gcu_id_number_list
                       }
                       }
@@ -66,7 +86,7 @@ RETURN {
   @indicator_2: che.properties.@indicator_2,
 
   properties: MERGE(
-    { chelsa: { count: che.count } },
+    { chelsa: { count: che.count / weight_chelsa } },
     eu_properties,
     eufgis_properties
   )
